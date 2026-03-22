@@ -97,6 +97,10 @@ pub fn execute(instructions: Vec<Instruction>)  {
             },
             Instruction::Divide => {
                 runtime.arithmetic_opr(Arithmetic::Division);
+            },
+            Instruction::Negate => {
+                let value = runtime.pop_or_panic_stack();
+                runtime.stack.push(-value);
             }
         }
     }

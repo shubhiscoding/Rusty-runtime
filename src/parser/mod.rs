@@ -92,6 +92,22 @@ impl Parser {
             _ => panic!("Invalid expression"),
         }
     }
+
+    fn parse_unary(&mut self) -> Expression {
+        if let Some(token) = self.peek() {
+            if let Some(opr) = is_operator(token){
+                if opr == Arithmetic::Subtraction {
+                    self.advance();
+                    let expr = self.parse_unary();
+                    return Expression::Unary {
+                        op: opr,
+                        expr: Box::new(expr)
+                    }
+                }
+            }
+        }
+        self.parse_primary()
+    }
 }
 
 fn is_operator(tkn: &Token) -> Option<Arithmetic> {
@@ -129,7 +145,7 @@ impl Parser {
     }
 
     fn parse_term(&mut self) -> Expression {
-        let mut left = self.parse_primary();
+        let mut left = self.parse_unary();
 
         while let Some(token) = self.peek() {
             if let Some(opr) = is_operator(token){

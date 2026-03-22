@@ -25,5 +25,9 @@ pub enum Expression {
         left: Box<Expression>,
         op: Arithmetic,
         right: Box<Expression>,
+    },
+    Unary {
+        op: Arithmetic,
+        expr: Box<Expression>
     }
 }

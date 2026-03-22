@@ -9,8 +9,8 @@ use compiler::compile_statements;
 use vm::execute;
 fn main() {
     let input = "
-    let x = 6 + 2 * 3 *2;
-    let b = 2;
+    let x = -2 + 6 + 2 * 3 *2;
+    let b = -2-2;
     print x;
     print b;
     print x/b+10;
