@@ -9,7 +9,7 @@ pub enum Statement {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Arithmetic {
     Addition,
     Subtraction,

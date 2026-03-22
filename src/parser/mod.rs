@@ -107,9 +107,30 @@ fn is_operator(tkn: &Token) -> Option<Arithmetic> {
 impl Parser {
 
     fn parse_expression(&mut self) -> Expression {
+        let mut left = self.parse_term();
+
+        while let Some(opr) = is_operator(self.peek().unwrap()) {
+            if opr != Arithmetic::Addition && opr != Arithmetic::Subtraction {
+                break;
+            }
+            self.advance();
+            let right = self.parse_term();
+            left = Expression::Binary {
+                left: Box::new(left),
+                op: opr,
+                right: Box::new(right),
+            };
+        }
+        left
+    }
+
+    fn parse_term(&mut self) -> Expression {
         let mut left = self.parse_primary();
 
         while let Some(opr) = is_operator(self.peek().unwrap()) {
+            if opr != Arithmetic::Multiplication && opr != Arithmetic::Division {
+                break;
+            }
             self.advance();
             let right = self.parse_primary();
             left = Expression::Binary {
