@@ -50,6 +50,10 @@ impl Runtime {
             Arithmetic::Addition => {
                 let  final_value = value1 + value2;
                 self.stack.push(final_value);
+            },
+            Arithmetic::Subtraction => {
+                let  final_value = value2 - value1;
+                self.stack.push(final_value);
             }
         }
     }
@@ -73,6 +77,9 @@ pub fn execute(instructions: Vec<Instruction>)  {
             },
             Instruction::Add => {
                 runtime.arithmetic_opr(Arithmetic::Addition);
+            },
+            Instruction::Subtract => {
+                runtime.arithmetic_opr(Arithmetic::Subtraction);
             }
         }
     }

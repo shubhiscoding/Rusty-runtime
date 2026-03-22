@@ -5,7 +5,8 @@ pub enum Token {
     Number(i32),
     Equals,
     Semicolon,
-    Addition
+    Addition,
+    Subtraction,
 }
 
 
@@ -26,6 +27,11 @@ pub fn tokenize(input: &str) -> Vec<Token> {
 
             '+' => {
                 tokens.push(Token::Addition);
+                chars.next();
+            }
+            
+            '-' => {
+                tokens.push(Token::Subtraction);
                 chars.next();
             }
 

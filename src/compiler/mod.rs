@@ -7,7 +7,8 @@ pub enum Instruction {
     StoreVar(String),
     LoadVar(String),
     Print,
-    Add
+    Add,
+    Subtract
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -19,6 +20,7 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
             compile_expr(instructions, right);
             match op {
                 Arithmetic::Addition => instructions.push(Instruction::Add),
+                Arithmetic::Subtraction => instructions.push(Instruction::Subtract)
             }
         }
     }

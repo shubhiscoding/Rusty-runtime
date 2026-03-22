@@ -11,7 +11,8 @@ pub enum Statement {
 
 #[derive(Debug, Clone)]
 pub enum Arithmetic {
-    Addition
+    Addition,
+    Subtraction
 }
 
 #[derive(Debug, Clone)]

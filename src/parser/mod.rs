@@ -97,6 +97,7 @@ impl Parser {
 fn is_operator(tkn: &Token) -> Option<Arithmetic> {
     match tkn {
         Token::Addition => Some(Arithmetic::Addition),
+        Token::Subtraction => Some(Arithmetic::Subtraction),
         _ => None
     }
 }

@@ -8,7 +8,7 @@ use parser::Parser;
 use compiler::compile_statements;
 use vm::execute;
 fn main() {
-    let input = "let x = 5+5+1+10; print x;";
+    let input = "let x = 5-8+5+1+10-5; print x-10;";
     
     let tokens = tokenize(input);
 
