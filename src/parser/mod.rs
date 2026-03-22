@@ -58,7 +58,7 @@ impl Parser {
             _ => panic!("Expected '='"),
         }
 
-        let value = self.parse_value();
+        let value = self.parse_expression();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -73,7 +73,7 @@ impl Parser {
     fn parse_print(&mut self) -> Statement {
         self.advance(); // consume 'print'
 
-        let value = self.parse_value();
+        let value = self.parse_expression();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -85,7 +85,7 @@ impl Parser {
 }
 
 impl Parser {
-    fn parse_expression(&mut self) -> Expression {
+    fn parse_primary(&mut self) -> Expression {
         match self.advance() {
             Some(Token::Number(n)) => Expression::Number(*n),
             Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
@@ -95,12 +95,12 @@ impl Parser {
 }
 
 impl Parser {
-    fn parse_value(&mut self) -> Expression {
-        let mut left = self.parse_expression();
+    fn parse_expression(&mut self) -> Expression {
+        let mut left = self.parse_primary();
 
         while let Some(Token::Addition) = self.peek() {
             self.advance();
-            let right = self.parse_expression();
+            let right = self.parse_primary();
             left = Expression::Binary {
                 left: Box::new(left),
                 op: Arithmetic::Addition,
