@@ -1,4 +1,4 @@
-use crate::ast::{Arithmetic, Expression, Statement, Value};
+use crate::ast::{Arithmetic, Expression, Statement};
 
 
 #[derive(Debug)]
@@ -14,25 +14,11 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
     match expr {
         Expression::Number(x) => instructions.push(Instruction::LoadConst(*x)),
         Expression::Identifier(val) => instructions.push(Instruction::LoadVar(val.to_string())),
-    }
-}
-
-fn compile_val(instructions: &mut Vec<Instruction>, value: &Value){
-    match value {
-        Value::Expression(expression) => compile_expr(instructions, expression),
-        
-        Value::BinaryExpression(expression) => {
-            let identifier = &expression.identifier;
-            let value1 = &expression.value1;
-            let value2 = &expression.value2;
-            
-            compile_expr(instructions, value1);
-            compile_expr(instructions, value2);
-
-            match identifier {
-                Arithmetic::Addition => {
-                    instructions.push(Instruction::Add);
-                }
+        Expression::Binary { left, op, right } => {
+            compile_expr(instructions, left);
+            compile_expr(instructions, right);
+            match op {
+                Arithmetic::Addition => instructions.push(Instruction::Add),
             }
         }
     }
@@ -43,11 +29,11 @@ pub fn compile_statements(statements: Vec<Statement>) -> Vec<Instruction> {
     for statement in statements {
         match statement {
             Statement::VarDecl { name, value } => {
-                compile_val(&mut instructions, &value);
+                compile_expr(&mut instructions, &value);
                 instructions.push(Instruction::StoreVar(name));
             },
             Statement::Print { value } => {
-                compile_val(&mut instructions, &value);
+                compile_expr(&mut instructions, &value);
                 instructions.push(Instruction::Print);
             }
         }

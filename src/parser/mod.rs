@@ -1,5 +1,5 @@
 use crate::lexer::Token;
-use crate::ast::{Arithmetic, BinaryExpression, Expression, Statement, Value};
+use crate::ast::{Arithmetic, Expression, Statement};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -94,24 +94,19 @@ impl Parser {
     }
 }
 
-
 impl Parser {
-    fn parse_value(&mut self) -> Value {
-        let v1 = self.parse_expression();
-        let identifier = match self.peek() {
-            Some(Token::Addition) => {
-                self.advance();
-                Arithmetic::Addition
-            },
-            _ => {return Value::Expression(v1);}
-        };
+    fn parse_value(&mut self) -> Expression {
+        let mut left = self.parse_expression();
 
-        let v2 = match self.advance() {
-            Some(Token::Number(n)) => Expression::Number(*n),
-            Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
-            _ => panic!("Invalid expression"),
-        };
-        let binary_expr = BinaryExpression {value1:  v1, identifier, value2: v2};
-        return Value::BinaryExpression(binary_expr);
+        while let Some(Token::Addition) = self.peek() {
+            self.advance();
+            let right = self.parse_expression();
+            left = Expression::Binary {
+                left: Box::new(left),
+                op: Arithmetic::Addition,
+                right: Box::new(right),
+            };
+        }
+        left
     }
 }

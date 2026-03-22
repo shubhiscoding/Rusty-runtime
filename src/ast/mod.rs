@@ -2,33 +2,25 @@
 pub enum Statement {
     VarDecl {
         name: String,
-        value: Value,
+        value: Expression,
     },
     Print {
-        value: Value,
+        value: Expression,
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Arithmetic {
     Addition
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expression {
     Number(i32),
-    Identifier(String)
-}
-
-#[derive(Debug)]
-pub struct  BinaryExpression {
-    pub value1: Expression,
-    pub identifier: Arithmetic,
-    pub value2: Expression
-}
-
-#[derive(Debug)]
-pub enum Value {
-    Expression(Expression),         // Can print an Expression
-    BinaryExpression(BinaryExpression), // Can also print a BinaryExpression
+    Identifier(String),
+    Binary {
+        left: Box<Expression>,
+        op: Arithmetic,
+        right: Box<Expression>,
+    }
 }
