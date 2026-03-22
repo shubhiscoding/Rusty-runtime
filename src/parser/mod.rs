@@ -1,5 +1,5 @@
 use crate::lexer::Token;
-use crate::ast::{Statement, Expression};
+use crate::ast::{Arithmetic, BinaryExpression, Expression, Statement, Value};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -58,7 +58,7 @@ impl Parser {
             _ => panic!("Expected '='"),
         }
 
-        let value = self.parse_expression();
+        let value = self.parse_value();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -73,7 +73,7 @@ impl Parser {
     fn parse_print(&mut self) -> Statement {
         self.advance(); // consume 'print'
 
-        let value = self.parse_expression();
+        let value = self.parse_value();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -91,5 +91,27 @@ impl Parser {
             Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
             _ => panic!("Invalid expression"),
         }
+    }
+}
+
+
+impl Parser {
+    fn parse_value(&mut self) -> Value {
+        let v1 = self.parse_expression();
+        let identifier = match self.peek() {
+            Some(Token::Addition) => {
+                self.advance();
+                Arithmetic::Addition
+            },
+            _ => {return Value::Expression(v1);}
+        };
+
+        let v2 = match self.advance() {
+            Some(Token::Number(n)) => Expression::Number(*n),
+            Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
+            _ => panic!("Invalid expression"),
+        };
+        let binary_expr = BinaryExpression {value1:  v1, identifier, value2: v2};
+        return Value::BinaryExpression(binary_expr);
     }
 }

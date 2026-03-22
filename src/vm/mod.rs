@@ -1,6 +1,6 @@
-use std::collections::{HashMap};
+use std::{collections::HashMap, i32};
 
-use crate::compiler::Instruction;
+use crate::{ast::Arithmetic, compiler::Instruction};
 
 struct Runtime {
     stack: Vec<i32>,
@@ -35,6 +35,24 @@ impl Runtime {
             panic!("No defined value to print");
         }
     }
+    fn pop_or_panic_stack(&mut self) -> i32 {
+        if let Some(value) = self.stack.pop(){
+            return value;
+        } else {
+            panic!("Invalid expression");
+        }
+    }
+    fn arithmetic_opr(&mut self, opr_type: Arithmetic) {
+        let value1 = self.pop_or_panic_stack();
+        let value2= self.pop_or_panic_stack();
+
+        match opr_type {
+            Arithmetic::Addition => {
+                let  final_value = value1 + value2;
+                self.stack.push(final_value);
+            }
+        }
+    }
 }
 
 pub fn execute(instructions: Vec<Instruction>)  {
@@ -52,6 +70,9 @@ pub fn execute(instructions: Vec<Instruction>)  {
             },
             Instruction::Print => {
                 runtime.print();
+            },
+            Instruction::Add => {
+                runtime.arithmetic_opr(Arithmetic::Addition);
             }
         }
     }
