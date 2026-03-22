@@ -2,10 +2,11 @@ mod lexer;
 mod parser;
 mod ast;
 mod compiler;
+mod vm;
 use lexer::tokenize;
 use parser::Parser;
 use compiler::compile_statements;
-
+use vm::execute;
 fn main() {
     let input = "let x = 5; print x;";
     
@@ -16,6 +17,7 @@ fn main() {
 
     let instructions = compile_statements(ast);
 
-    println!("{:#?}", instructions);
+    execute(instructions);
+
     println!("Rusty Runtime 🦀");
 }
