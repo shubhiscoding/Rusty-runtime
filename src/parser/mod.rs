@@ -98,6 +98,8 @@ fn is_operator(tkn: &Token) -> Option<Arithmetic> {
     match tkn {
         Token::Addition => Some(Arithmetic::Addition),
         Token::Subtraction => Some(Arithmetic::Subtraction),
+        Token::Multiplication => Some(Arithmetic::Multiplication),
+        Token::Division => Some(Arithmetic::Division),
         _ => None
     }
 }

@@ -12,7 +12,9 @@ pub enum Statement {
 #[derive(Debug, Clone)]
 pub enum Arithmetic {
     Addition,
-    Subtraction
+    Subtraction,
+    Multiplication,
+    Division
 }
 
 #[derive(Debug, Clone)]

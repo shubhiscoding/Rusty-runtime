@@ -54,6 +54,17 @@ impl Runtime {
             Arithmetic::Subtraction => {
                 let  final_value = value2 - value1;
                 self.stack.push(final_value);
+            },
+            Arithmetic::Multiplication => {
+                let  final_value = value1 * value2;
+                self.stack.push(final_value);
+            },
+            Arithmetic::Division => {
+                if value1 == 0 {
+                    panic!("Division by zero");
+                }
+                let final_value = value2 / value1;
+                self.stack.push(final_value);
             }
         }
     }
@@ -80,6 +91,12 @@ pub fn execute(instructions: Vec<Instruction>)  {
             },
             Instruction::Subtract => {
                 runtime.arithmetic_opr(Arithmetic::Subtraction);
+            },
+            Instruction::Multiply => {
+                runtime.arithmetic_opr(Arithmetic::Multiplication);
+            },
+            Instruction::Divide => {
+                runtime.arithmetic_opr(Arithmetic::Division);
             }
         }
     }
