@@ -2,12 +2,17 @@ mod lexer;
 mod parser;
 mod ast;
 use lexer::tokenize;
+use parser::Parser;
 
 
 fn main() {
-    let input = "let x     = 523;";
+    let input = "let x = 5; print x;";
+    
     let tokens = tokenize(input);
+    let mut parser = Parser::new(tokens);
 
-    println!("{:#?}", tokens);
+    let ast = parser.parse();
+
+    println!("{:#?}", ast);
     println!("Rusty Runtime 🦀");
 }
