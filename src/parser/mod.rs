@@ -94,16 +94,24 @@ impl Parser {
     }
 }
 
+fn is_operator(tkn: &Token) -> Option<Arithmetic> {
+    match tkn {
+        Token::Addition => Some(Arithmetic::Addition),
+        _ => None
+    }
+}
+
 impl Parser {
+
     fn parse_expression(&mut self) -> Expression {
         let mut left = self.parse_primary();
 
-        while let Some(Token::Addition) = self.peek() {
+        while let Some(opr) = is_operator(self.peek().unwrap()) {
             self.advance();
             let right = self.parse_primary();
             left = Expression::Binary {
                 left: Box::new(left),
-                op: Arithmetic::Addition,
+                op: opr,
                 right: Box::new(right),
             };
         }
