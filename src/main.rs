@@ -1,3 +1,5 @@
+use std::env::{args};
+
 mod lexer;
 mod parser;
 mod ast;
@@ -8,24 +10,30 @@ use parser::Parser;
 use compiler::compile_statements;
 use vm::execute;
 fn main() {
-    let input = "
-    let x = (2 + (3 * (4+2)));
-    let b = -2-2;
-    print x;
-    print (2 + 3) * 4;
-    print -(2 + 3);
-    print (2 + 3) * (4 + 1);
-";
-    
-    let tokens = tokenize(input);
-
-    let mut parser = Parser::new(tokens);
-
-    let ast = parser.parse();
-
-    let instructions = compile_statements(ast);
-
-    execute(instructions);
-
-    println!("Rusty Runtime 🦀");
+    let run_args = args().collect::<Vec<String>>();
+    if run_args.len() < 2 {
+        println!("Usage: {} <source_file>", run_args[0]);
+        return;
+    }
+    let command = run_args[1].as_str();
+    if command == "--version" || command == "-v" {
+        println!("Rusty Runtime 🦀 v{}", env!("CARGO_PKG_VERSION"));
+        return;
+    }
+    if command == "run" {
+        if run_args.len() < 3 {
+            println!("Usage: {} run <source_file>", run_args[0]);
+            return;
+        }
+        let filename = &run_args[2];
+        let source = std::fs::read_to_string(filename).expect("Failed to read source file");
+        let tokens = tokenize(&source);
+        let mut parser = Parser::new(tokens);
+        let ast = parser.parse();
+        let instructions = compile_statements(ast);
+        execute(instructions);
+    } else {
+        println!("Unknown command: {}", command);
+        println!("Usage: {} run <source_file>", run_args[0]);
+    }
 }
