@@ -13,7 +13,7 @@ pub enum Token {
     RightParentheses,
     Less,
     Greater,
-    EqualsTO,
+    EqualEqual,
     NotEqual,
 }
 
@@ -32,7 +32,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 chars.next();
                 if let Some(&ch) = chars.peek() {
                     if ch == '=' {
-                        tokens.push(Token::EqualsTO);
+                        tokens.push(Token::EqualEqual);
                         chars.next();
                     } else {
                         tokens.push(Token::Equals);

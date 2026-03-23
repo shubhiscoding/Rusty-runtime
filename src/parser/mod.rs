@@ -99,7 +99,7 @@ fn is_compare_operator(tkn: &Token) -> Option<Arithmetic> {
     match tkn {
         Token::Greater => Some(Arithmetic::Greater),
         Token::Less => Some(Arithmetic::Less),
-        Token::EqualsTO => Some(Arithmetic::Equal),
+        Token::EqualEqual => Some(Arithmetic::Equal),
         Token::NotEqual => Some(Arithmetic::NotEqual),
         _ => None
     }
