@@ -8,7 +8,9 @@ pub enum Token {
     Addition,
     Subtraction,
     Multiplication,
-    Division
+    Division,
+    LeftParentheses,
+    RightParentheses
 }
 
 
@@ -44,6 +46,16 @@ pub fn tokenize(input: &str) -> Vec<Token> {
 
             '/' => {
                 tokens.push(Token::Division);
+                chars.next();
+            }
+
+            '(' => {
+                tokens.push(Token::LeftParentheses);
+                chars.next();
+            }
+
+            ')' => {
+                tokens.push(Token::RightParentheses);
                 chars.next();
             }
 

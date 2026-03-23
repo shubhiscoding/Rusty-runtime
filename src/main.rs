@@ -9,11 +9,12 @@ use compiler::compile_statements;
 use vm::execute;
 fn main() {
     let input = "
-    let x = -2 + 6 + 2 * 3 *2;
+    let x = (2 + (3 * (4+2)));
     let b = -2-2;
     print x;
-    print b;
-    print x/b+10;
+    print (2 + 3) * 4;
+    print -(2 + 3);
+    print (2 + 3) * (4 + 1);
 ";
     
     let tokens = tokenize(input);

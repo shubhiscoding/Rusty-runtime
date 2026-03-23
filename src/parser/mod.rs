@@ -87,6 +87,14 @@ impl Parser {
 impl Parser {
     fn parse_primary(&mut self) -> Expression {
         match self.advance() {
+            Some(Token::LeftParentheses) => {
+                let expr = self.parse_expression();
+                match self.advance() {
+                    Some(Token::RightParentheses) => {}
+                    _ => panic!("Expected ')'"),
+                }
+                expr
+            }
             Some(Token::Number(n)) => Expression::Number(*n),
             Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
             _ => panic!("Invalid expression"),
