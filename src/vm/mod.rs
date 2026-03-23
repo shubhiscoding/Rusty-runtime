@@ -2,12 +2,17 @@ use std::{collections::HashMap, i32};
 
 use crate::{ast::Arithmetic, compiler::Instruction};
 
-struct Runtime {
+pub struct Runtime {
     stack: Vec<i32>,
     variables: HashMap<String, i32>,
 }
 
 impl Runtime {
+
+    pub fn new() -> Self {
+        Self { stack: Vec::new(), variables: HashMap::<String, i32>::new() }
+    }
+
     fn load_variable(&mut self, var: &str) {
         if let Some(value) = self.variables.get(var) {
             self.stack.push(*value);
@@ -70,8 +75,7 @@ impl Runtime {
     }
 }
 
-pub fn execute(instructions: Vec<Instruction>)  {
-    let mut runtime = Runtime{stack: Vec::new(), variables: HashMap::<String, i32>::new()};
+pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
     for instruction in instructions {
         match instruction {
             Instruction::LoadConst(val) => {

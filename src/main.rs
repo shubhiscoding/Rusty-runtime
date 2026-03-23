@@ -31,7 +31,8 @@ fn main() {
         let mut parser = Parser::new(tokens);
         let ast = parser.parse();
         let instructions = compile_statements(ast);
-        execute(instructions);
+        let mut runtime = vm::Runtime::new();
+        execute(instructions, &mut runtime);
     } else {
         println!("Unknown command: {}", command);
         println!("Usage: {} run <source_file>", run_args[0]);
