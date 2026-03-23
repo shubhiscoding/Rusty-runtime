@@ -1,4 +1,5 @@
 use std::env::{args};
+use std::panic;
 
 mod lexer;
 mod parser;
@@ -9,6 +10,31 @@ use lexer::tokenize;
 use parser::Parser;
 use compiler::compile_statements;
 use vm::execute;
+use vm::Runtime;
+
+fn repl_execution(runtime: &mut Runtime, input: &str) {
+        let tokens = tokenize(&input);
+        let mut parser = Parser::new(tokens);
+        let ast = parser.parse();
+        let instructions = compile_statements(ast);
+        execute(instructions, runtime);
+}
+
+fn repl(){
+    use std::io::{self, Write};
+    let mut runtime = Runtime::new();
+    loop {
+        print!("> ");
+        io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("Failed to read line");
+        let res = panic::catch_unwind(panic::AssertUnwindSafe(|| repl_execution(&mut runtime, &input)));
+        if let Err(_) = res {
+            eprintln!("Error occurred while executing input");
+        }
+    }
+}
+
 fn main() {
     let run_args = args().collect::<Vec<String>>();
     if run_args.len() < 2 {
@@ -18,6 +44,10 @@ fn main() {
     let command = run_args[1].as_str();
     if command == "--version" || command == "-v" {
         println!("Rusty Runtime 🦀 v{}", env!("CARGO_PKG_VERSION"));
+        return;
+    }
+    if command == "repl" {
+        repl();
         return;
     }
     if command == "run" {
