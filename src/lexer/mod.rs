@@ -10,7 +10,11 @@ pub enum Token {
     Multiplication,
     Division,
     LeftParentheses,
-    RightParentheses
+    RightParentheses,
+    Less,
+    Greater,
+    EqualsTO,
+    NotEqual,
 }
 
 
@@ -25,8 +29,41 @@ pub fn tokenize(input: &str) -> Vec<Token> {
             }
 
             '=' => {
-                tokens.push(Token::Equals);
                 chars.next();
+                if let Some(&ch) = chars.peek() {
+                    if ch == '=' {
+                        tokens.push(Token::EqualsTO);
+                        chars.next();
+                    } else {
+                        tokens.push(Token::Equals);
+                    }
+                } else {
+                    panic!("Unexpected character: {}", ch);
+                }
+            }
+
+            '<' => {
+                tokens.push(Token::Less);
+                chars.next();
+            }
+
+            '>' => {
+                tokens.push(Token::Greater);
+                chars.next();
+            }
+
+            '!' => {
+                chars.next();
+                if let Some(&ch) = chars.peek() {
+                    if ch == '=' {
+                        tokens.push(Token::NotEqual);
+                        chars.next();
+                    } else {
+                        panic!("Unexpected character: {}", ch);
+                    }
+                } else {
+                    panic!("Unexpected character: {}", ch);
+                }
             }
 
             '+' => {

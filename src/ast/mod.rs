@@ -14,7 +14,11 @@ pub enum Arithmetic {
     Addition,
     Subtraction,
     Multiplication,
-    Division
+    Division,
+    Greater,
+    Less,
+    Equal,
+    NotEqual,
 }
 
 #[derive(Debug, Clone)]

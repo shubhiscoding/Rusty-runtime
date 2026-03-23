@@ -71,7 +71,23 @@ impl Runtime {
                 let final_value = value2 / value1;
                 self.stack.push(final_value);
             }
+            _ => panic!("Invalid arithmetic operator")
         }
+    }
+
+
+    fn compare_opr(&mut self, opr_type: Arithmetic) {
+        let value1 = self.pop_or_panic_stack();
+        let value2= self.pop_or_panic_stack();
+
+        let result = match opr_type {
+            Arithmetic::Greater => value2 > value1,
+            Arithmetic::Less => value2 < value1,
+            Arithmetic::Equal => value2 == value1,
+            Arithmetic::NotEqual => value2 != value1,
+            _ => panic!("Invalid comparison operator")
+        };
+        self.stack.push(if result { 1 } else { 0 });
     }
 }
 
@@ -105,6 +121,18 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             Instruction::Negate => {
                 let value = runtime.pop_or_panic_stack();
                 runtime.stack.push(-value);
+            },
+            Instruction::Greater => {
+                runtime.compare_opr(Arithmetic::Greater);
+            },
+            Instruction::Less => {
+                runtime.compare_opr(Arithmetic::Less);
+            },
+            Instruction::Equal => {
+                runtime.compare_opr(Arithmetic::Equal);
+            },
+            Instruction::NotEqual => {
+                runtime.compare_opr(Arithmetic::NotEqual);
             }
         }
     }

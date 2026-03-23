@@ -58,7 +58,7 @@ impl Parser {
             _ => panic!("Expected '='"),
         }
 
-        let value = self.parse_expression();
+        let value = self.parse_comparison();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -73,7 +73,7 @@ impl Parser {
     fn parse_print(&mut self) -> Statement {
         self.advance(); // consume 'print'
 
-        let value = self.parse_expression();
+        let value = self.parse_comparison();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -84,11 +84,32 @@ impl Parser {
     }
 }
 
+
+fn is_operator(tkn: &Token) -> Option<Arithmetic> {
+    match tkn {
+        Token::Addition => Some(Arithmetic::Addition),
+        Token::Subtraction => Some(Arithmetic::Subtraction),
+        Token::Multiplication => Some(Arithmetic::Multiplication),
+        Token::Division => Some(Arithmetic::Division),
+        _ => None
+    }
+}
+
+fn is_compare_operator(tkn: &Token) -> Option<Arithmetic> {
+    match tkn {
+        Token::Greater => Some(Arithmetic::Greater),
+        Token::Less => Some(Arithmetic::Less),
+        Token::EqualsTO => Some(Arithmetic::Equal),
+        Token::NotEqual => Some(Arithmetic::NotEqual),
+        _ => None
+    }
+}
+
 impl Parser {
     fn parse_primary(&mut self) -> Expression {
         match self.advance() {
             Some(Token::LeftParentheses) => {
-                let expr = self.parse_expression();
+                let expr = self.parse_comparison();
                 match self.advance() {
                     Some(Token::RightParentheses) => {}
                     _ => panic!("Expected ')'"),
@@ -116,15 +137,24 @@ impl Parser {
         }
         self.parse_primary()
     }
-}
 
-fn is_operator(tkn: &Token) -> Option<Arithmetic> {
-    match tkn {
-        Token::Addition => Some(Arithmetic::Addition),
-        Token::Subtraction => Some(Arithmetic::Subtraction),
-        Token::Multiplication => Some(Arithmetic::Multiplication),
-        Token::Division => Some(Arithmetic::Division),
-        _ => None
+    fn parse_comparison(&mut self) -> Expression {
+        let mut left = self.parse_expression();
+
+        while let Some(token) = self.peek() {
+            if let Some(opr) = is_compare_operator(token){
+                self.advance();
+                let right = self.parse_expression();
+                left = Expression::Binary {
+                    left: Box::new(left),
+                    op: opr,
+                    right: Box::new(right),
+                };
+            } else {
+                break;
+            }
+        }
+        left
     }
 }
 

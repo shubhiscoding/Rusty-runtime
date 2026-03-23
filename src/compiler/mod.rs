@@ -11,7 +11,11 @@ pub enum Instruction {
     Subtract,
     Multiply,
     Divide,
-    Negate
+    Negate,
+    Greater,
+    Less,
+    Equal,
+    NotEqual,
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -26,15 +30,17 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                 Arithmetic::Subtraction => instructions.push(Instruction::Subtract),
                 Arithmetic::Multiplication => instructions.push(Instruction::Multiply),
                 Arithmetic::Division => instructions.push(Instruction::Divide),
+                Arithmetic::Greater => instructions.push(Instruction::Greater),
+                Arithmetic::Less => instructions.push(Instruction::Less),
+                Arithmetic::Equal => instructions.push(Instruction::Equal),
+                Arithmetic::NotEqual => instructions.push(Instruction::NotEqual),
             }
         }
         Expression::Unary { op, expr } => {
             compile_expr(instructions, expr);
             match op {
-                Arithmetic::Addition => {},
                 Arithmetic::Subtraction => instructions.push(Instruction::Negate),
-                Arithmetic::Multiplication => {},
-                Arithmetic::Division => {},
+                _ => {}
             }
         }
     }
