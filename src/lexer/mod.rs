@@ -18,6 +18,7 @@ pub enum Token {
     If,
     LeftBrace,
     RightBrace,
+    Else
 }
 
 
@@ -144,6 +145,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 match ident.as_str() {
                     "let" => tokens.push(Token::Let),
                     "if" => tokens.push(Token::If),
+                    "else" => tokens.push(Token::Else),
                     _ => tokens.push(Token::Identifier(ident)),
                 }
             }

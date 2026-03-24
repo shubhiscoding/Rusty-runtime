@@ -142,6 +142,10 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
                     i = *idx;
                     continue;
                 }
+            },
+            Instruction::Jump(idx) => {
+                i = *idx;
+                continue;
             }
         }
         i += 1;

@@ -212,6 +212,26 @@ impl Parser {
             _ => panic!("Expected '}}'"),
         }
 
-        Statement::If { condition, body }
+        let mut else_body = Vec::new();
+        if let Some(Token::Else) = self.peek() {
+            self.advance();
+            match self.advance() {
+                Some(Token::LeftBrace) => {}_ => panic!("Expected '{{' after 'else'"),
+            }
+
+            while let Some(token) = self.peek() {
+                if *token == Token::RightBrace {
+                    break;
+                }
+                else_body.push(self.parse_statement());
+            }
+
+            match self.advance() {
+                Some(Token::RightBrace) => {}
+                _ => panic!("Expected '}}' after else block"),
+            }
+        }
+
+        Statement::If { condition, body, else_body: Some(else_body)}
     }
 }

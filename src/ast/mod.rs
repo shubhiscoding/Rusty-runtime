@@ -9,7 +9,8 @@ pub enum Statement {
     },
     If {
         condition: Expression,
-        body: Vec<Statement>
+        body: Vec<Statement>,
+        else_body: Option<Vec<Statement>>,
     }
 }
 
