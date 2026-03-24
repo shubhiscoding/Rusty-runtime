@@ -171,7 +171,10 @@ cargo run -- repl
 * [ ] Strings
 * [x] Comparisons (`>`, `<`, `==`, `!=`)
 * [x] `if` / `else`
-* [ ] Loops (`while`, `for`)
+* [x] `while` loops
+* [x] `break` / `continue`
+* [x] Variable reassignment
+* [ ] `for` loops
 * [ ] Functions
 * [ ] Type annotations
 * [ ] Arrays and objects
