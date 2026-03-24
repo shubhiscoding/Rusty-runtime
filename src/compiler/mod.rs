@@ -1,5 +1,10 @@
 use crate::ast::{BinaryOperation, Expression, Statement};
 
+pub struct LoopContext {
+    start: usize,
+    break_placeholders: Vec<usize>,
+}
+
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -49,33 +54,34 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
     }
 }
 
-pub fn compile_statements(statements: Vec<Statement>) -> Vec<Instruction> {
-    let mut instructions = Vec::<Instruction>::new();
+pub fn compile_statements(
+    statements: Vec<Statement>,
+    instructions: &mut Vec<Instruction>,
+    mut loop_ctx: Option<&mut LoopContext>,
+) {
     for statement in statements {
         match statement {
             Statement::VarDecl { name, value } => {
-                compile_expr(&mut instructions, &value);
+                compile_expr(instructions, &value);
                 instructions.push(Instruction::DeclareVar(name));
             },
             Statement::Print { value } => {
-                compile_expr(&mut instructions, &value);
+                compile_expr(instructions, &value);
                 instructions.push(Instruction::Print);
             }
             Statement::If { condition, body, else_body } => {
-                compile_expr(&mut instructions, &condition);
+                compile_expr(instructions, &condition);
 
                 let jump_if_false_index = instructions.len();
                 instructions.push(Instruction::JumpIfFalse(0));
 
-                let body_instructions = compile_statements(body);
-                instructions.extend(body_instructions);
+                compile_statements(body, instructions, loop_ctx.as_deref_mut());
 
                 if let Some(else_body) = else_body {
                     let jump_to_end_index = instructions.len();
                     instructions.push(Instruction::Jump(0));
                     instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
-                    let else_instructions = compile_statements(else_body);
-                    instructions.extend(else_instructions);
+                    compile_statements(else_body, instructions, loop_ctx.as_deref_mut());
                     instructions[jump_to_end_index] = Instruction::Jump(instructions.len());
                 } else {
                     instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
@@ -83,22 +89,43 @@ pub fn compile_statements(statements: Vec<Statement>) -> Vec<Instruction> {
             }
             Statement::While { condition, body } => {
                 let loop_start_index = instructions.len();
-                compile_expr(&mut instructions, &condition);
+                compile_expr(instructions, &condition);
 
                 let jump_if_false_index = instructions.len();
                 instructions.push(Instruction::JumpIfFalse(0));
 
-                let body_instructions = compile_statements(body);
-                instructions.extend(body_instructions);
+                let mut ctx = LoopContext {
+                    start: loop_start_index,
+                    break_placeholders: vec![],
+                };
+                compile_statements(body, instructions, Some(&mut ctx));
 
                 instructions.push(Instruction::Jump(loop_start_index));
                 instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
+
+                for idx in ctx.break_placeholders {
+                    instructions[idx] = Instruction::Jump(instructions.len());
+                }
             },
             Statement::Assignment { name, value } => {
-                compile_expr(&mut instructions, &value);
+                compile_expr(instructions, &value);
                 instructions.push(Instruction::AssignVar(name));
+            },
+            Statement::Break => {
+                if let Some(ctx) = loop_ctx.as_deref_mut() {
+                    instructions.push(Instruction::Jump(0));
+                    ctx.break_placeholders.push(instructions.len() - 1);
+                } else {
+                    panic!("'break' used outside of a loop");
+                }
+            },
+            Statement::Continue => {
+                if let Some(ctx) = loop_ctx.as_deref_mut() {
+                    instructions.push(Instruction::Jump(ctx.start));
+                } else {
+                    panic!("'continue' used outside of a loop");
+                }
             }
         }
     }
-    instructions
 }

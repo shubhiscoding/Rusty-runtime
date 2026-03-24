@@ -16,7 +16,8 @@ fn repl_execution(runtime: &mut Runtime, input: &str) {
         let tokens = tokenize(&input);
         let mut parser = Parser::new(tokens);
         let ast = parser.parse();
-        let instructions = compile_statements(ast);
+        let mut instructions = Vec::new();
+        compile_statements(ast, &mut instructions, None);
         execute(instructions, runtime);
 }
 
@@ -60,7 +61,8 @@ fn main() {
         let tokens = tokenize(&source);
         let mut parser = Parser::new(tokens);
         let ast = parser.parse();
-        let instructions = compile_statements(ast);
+        let mut instructions = Vec::new();
+        compile_statements(ast, &mut instructions, None);
         let mut runtime = vm::Runtime::new();
         execute(instructions, &mut runtime);
     } else {

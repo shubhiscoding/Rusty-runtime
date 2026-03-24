@@ -64,6 +64,20 @@ impl Parser {
             }
             Some(Token::If) => self.parse_if(),
             Some(Token::While) => self.parse_while(),
+            Some(Token::Break) => {
+                self.advance();
+                if self.advance() != Some(&Token::Semicolon) {
+                    panic!("Expected ';' after 'break'");
+                }
+                Statement::Break
+            },
+            Some(Token::Continue) => {
+                self.advance();
+                if self.advance() != Some(&Token::Semicolon) {
+                    panic!("Expected ';' after 'continue'");
+                }
+                Statement::Continue
+            },
             _ => panic!("Unexpected token: {:?}", self.peek()),
         }
     }

@@ -19,7 +19,9 @@ pub enum Statement {
     Assignment {
         name: String,
         value: Expression,
-    }
+    },
+    Break,
+    Continue
 }
 
 #[derive(Debug, Clone, PartialEq)]
