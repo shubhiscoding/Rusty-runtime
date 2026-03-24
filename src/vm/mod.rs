@@ -92,16 +92,18 @@ impl Runtime {
 }
 
 pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
-    for instruction in instructions {
+    let mut i = 0; // Initialize index to 0
+    while i < instructions.len() {
+        let instruction = &instructions[i];
         match instruction {
             Instruction::LoadConst(val) => {
-                runtime.load_const(val);
+                runtime.load_const(*val);
             },
             Instruction::StoreVar(val)  => {
-                runtime.store_variable(val);
+                runtime.store_variable(val.to_string());
             },
             Instruction::LoadVar(val) => {
-                runtime.load_variable(&val);
+                runtime.load_variable(val);
             },
             Instruction::Print => {
                 runtime.print();
@@ -133,7 +135,15 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             },
             Instruction::NotEqual => {
                 runtime.compare_opr(BinaryOperation::NotEqual);
+            },
+            Instruction::JumpIfFalse(idx) => {
+                let condition = runtime.pop_or_panic_stack();
+                if condition == 0 {
+                    i = *idx;
+                    continue;
+                }
             }
         }
+        i += 1;
     }
 }

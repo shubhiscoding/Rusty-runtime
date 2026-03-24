@@ -16,6 +16,7 @@ pub enum Instruction {
     Less,
     Equal,
     NotEqual,
+    JumpIfFalse(usize)
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -57,6 +58,17 @@ pub fn compile_statements(statements: Vec<Statement>) -> Vec<Instruction> {
             Statement::Print { value } => {
                 compile_expr(&mut instructions, &value);
                 instructions.push(Instruction::Print);
+            }
+            Statement::If { condition, body } => {
+                compile_expr(&mut instructions, &condition);
+
+                let jump_if_false_index = instructions.len();
+                instructions.push(Instruction::JumpIfFalse(0));
+
+                let body_instructions = compile_statements(body);
+                instructions.extend(body_instructions);
+
+                instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
             }
         }
     }

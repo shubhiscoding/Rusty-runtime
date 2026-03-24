@@ -7,6 +7,10 @@ pub enum Statement {
     Print {
         value: Expression,
     },
+    If {
+        condition: Expression,
+        body: Vec<Statement>
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

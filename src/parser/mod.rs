@@ -55,6 +55,7 @@ impl Parser {
         match self.peek() {
             Some(Token::Let) => self.parse_var_decl(),
             Some(Token::Identifier(name)) if name == "print" => self.parse_print(),
+            Some(Token::If) => self.parse_if(),
             _ => panic!("Unexpected token: {:?}", self.peek()),
         }
     }
@@ -188,5 +189,29 @@ impl Parser {
             Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
             _ => panic!("Invalid expression"),
         }
+    }
+
+    fn parse_if(&mut self) -> Statement {
+        self.advance(); // consume 'if'
+
+        let condition = self.parse_comparison();
+        match self.advance() {
+            Some(Token::LeftBrace) => {}_ => panic!("Expected '{{'"),
+        }
+
+        let mut body = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::RightBrace {
+                break;
+            }
+            body.push(self.parse_statement());
+        }
+
+        match self.advance() {
+            Some(Token::RightBrace) => {}
+            _ => panic!("Expected '}}'"),
+        }
+
+        Statement::If { condition, body }
     }
 }

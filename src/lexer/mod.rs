@@ -15,6 +15,9 @@ pub enum Token {
     Greater,
     EqualEqual,
     NotEqual,
+    If,
+    LeftBrace,
+    RightBrace,
 }
 
 
@@ -96,6 +99,16 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 chars.next();
             }
 
+            '}' => {
+                tokens.push(Token::RightBrace);
+                chars.next();
+            }
+
+            '{' => {
+                tokens.push(Token::LeftBrace);
+                chars.next();
+            }
+
             ';' => {
                 tokens.push(Token::Semicolon);
                 chars.next();
@@ -130,6 +143,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
 
                 match ident.as_str() {
                     "let" => tokens.push(Token::Let),
+                    "if" => tokens.push(Token::If),
                     _ => tokens.push(Token::Identifier(ident)),
                 }
             }
