@@ -77,6 +77,8 @@ The WASM backend will:
 * 🧮 Stack-based virtual machine
 * ➕ Arithmetic with precedence and parentheses
 * ➖ Unary operators (`-x`, `-(2 + 3)`)
+* 🔀 Comparison operators (`>`, `<`, `==`, `!=`)
+* 🔁 Control flow (`if` / `else`) with backpatching
 * 🖨️ Print statements (`print x;`)
 * 🔁 REPL (interactive shell)
 * 📂 File execution (`rusty run file.rts`)
@@ -86,22 +88,28 @@ The WASM backend will:
 ## 🧪 Example
 
 ```ts
-let x = (2 + (3 * (4 + 2)));
-let b = -2 - 2;
-
+let x = (2 + (3 * (4 + 2))) / 2;
 print x;
-print (2 + 3) * 4;
-print -(2 + 3);
-print (2 + 3) * (4 + 1);
+
+if (x > 5) {
+    print x;
+} else {
+    print 0;
+}
+
+if (x < 5) {
+    print 100;
+} else {
+    print 0;
+}
 ```
 
 Output:
 
 ```
-20
-20
--5
-25
+10
+10
+0
 ```
 
 ---
@@ -161,8 +169,8 @@ cargo run -- repl
 ### Language Features
 
 * [ ] Strings
-* [ ] Booleans and comparisons
-* [ ] `if` / `else`
+* [x] Comparisons (`>`, `<`, `==`, `!=`)
+* [x] `if` / `else`
 * [ ] Loops (`while`, `for`)
 * [ ] Functions
 * [ ] Type annotations
