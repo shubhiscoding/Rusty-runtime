@@ -194,9 +194,21 @@ impl Parser {
     fn parse_if(&mut self) -> Statement {
         self.advance(); // consume 'if'
 
-        let condition = self.parse_comparison();
         match self.advance() {
-            Some(Token::LeftBrace) => {}_ => panic!("Expected '{{'"),
+            Some(Token::LeftParentheses) => {}
+            _ => panic!("Expected '(' after 'if'"),
+        }
+
+        let condition = self.parse_comparison();
+
+        match self.advance() {
+            Some(Token::RightParentheses) => {}
+            _ => panic!("Expected ')' after if condition"),
+        }
+
+        match self.advance() {
+            Some(Token::LeftBrace) => {}
+            _ => panic!("Expected '{{'"),
         }
 
         let mut body = Vec::new();
