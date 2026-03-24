@@ -80,6 +80,23 @@ pub fn compile_statements(statements: Vec<Statement>) -> Vec<Instruction> {
                     instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
                 }
             }
+            Statement::While { condition, body } => {
+                let loop_start_index = instructions.len();
+                compile_expr(&mut instructions, &condition);
+
+                let jump_if_false_index = instructions.len();
+                instructions.push(Instruction::JumpIfFalse(0));
+
+                let body_instructions = compile_statements(body);
+                instructions.extend(body_instructions);
+
+                instructions.push(Instruction::Jump(loop_start_index));
+                instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
+            },
+            Statement::Assignment { name, value } => {
+                compile_expr(&mut instructions, &value);
+                instructions.push(Instruction::StoreVar(name));
+            }
         }
     }
     instructions

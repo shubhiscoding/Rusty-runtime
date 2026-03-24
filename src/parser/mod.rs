@@ -54,11 +54,36 @@ impl Parser {
     fn parse_statement(&mut self) -> Statement {
         match self.peek() {
             Some(Token::Let) => self.parse_var_decl(),
-            Some(Token::Identifier(name)) if name == "print" => self.parse_print(),
+            Some(Token::Identifier(name)) => {
+                if name == "print"{ 
+                    self.parse_print()
+                }
+                else {
+                    self.parse_assignment(name.clone())
+                }
+            }
             Some(Token::If) => self.parse_if(),
+            Some(Token::While) => self.parse_while(),
             _ => panic!("Unexpected token: {:?}", self.peek()),
         }
     }
+
+    fn parse_assignment(&mut self, name: String) -> Statement {
+        self.advance(); // consume identifier
+        match self.advance() {
+            Some(Token::Equals) => {}
+            _ => panic!("Expected '='"),
+        }
+
+        let value = self.parse_comparison();
+
+        match self.advance() {
+            Some(Token::Semicolon) => {}
+            _ => panic!("Expected ';'"),
+        }
+
+        Statement::Assignment { name, value }
+     }
 
     fn parse_var_decl(&mut self) -> Statement {
         self.advance(); // consume 'let'
@@ -247,4 +272,40 @@ impl Parser {
 
         Statement::If { condition, body, else_body: None }
     }
+
+    fn parse_while(&mut self) -> Statement {
+        self.advance(); // consume 'while'
+
+        match self.advance() {
+            Some(Token::LeftParentheses) => {}
+            _ => panic!("Expected '(' after 'while'"),
+        }
+
+        let condition = self.parse_comparison();
+
+        match self.advance() {
+            Some(Token::RightParentheses) => {}
+            _ => panic!("Expected ')' after while condition"),
+        }
+
+        match self.advance() {
+            Some(Token::LeftBrace) => {}
+            _ => panic!("Expected '{{'"),
+        }
+
+        let mut body = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::RightBrace {
+                break;
+            }
+            body.push(self.parse_statement());
+        }
+
+        match self.advance() {
+            Some(Token::RightBrace) => {}
+            _ => panic!("Expected '}}' after while block"),
+        }
+
+        Statement::While { condition, body }
+     }
 }

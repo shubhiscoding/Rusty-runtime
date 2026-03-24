@@ -18,7 +18,8 @@ pub enum Token {
     If,
     LeftBrace,
     RightBrace,
-    Else
+    Else,
+    While
 }
 
 
@@ -146,6 +147,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                     "let" => tokens.push(Token::Let),
                     "if" => tokens.push(Token::If),
                     "else" => tokens.push(Token::Else),
+                    "while" => tokens.push(Token::While),
                     _ => tokens.push(Token::Identifier(ident)),
                 }
             }

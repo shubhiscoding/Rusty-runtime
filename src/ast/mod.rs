@@ -11,6 +11,14 @@ pub enum Statement {
         condition: Expression,
         body: Vec<Statement>,
         else_body: Option<Vec<Statement>>,
+    },
+    While {
+        condition: Expression,
+        body: Vec<Statement>
+    },
+    Assignment {
+        name: String,
+        value: Expression,
     }
 }
 
