@@ -1,4 +1,4 @@
-use crate::ast::{Arithmetic, Expression, Statement};
+use crate::ast::{BinaryOperation, Expression, Statement};
 
 
 #[derive(Debug)]
@@ -26,20 +26,20 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
             compile_expr(instructions, left);
             compile_expr(instructions, right);
             match op {
-                Arithmetic::Addition => instructions.push(Instruction::Add),
-                Arithmetic::Subtraction => instructions.push(Instruction::Subtract),
-                Arithmetic::Multiplication => instructions.push(Instruction::Multiply),
-                Arithmetic::Division => instructions.push(Instruction::Divide),
-                Arithmetic::Greater => instructions.push(Instruction::Greater),
-                Arithmetic::Less => instructions.push(Instruction::Less),
-                Arithmetic::Equal => instructions.push(Instruction::Equal),
-                Arithmetic::NotEqual => instructions.push(Instruction::NotEqual),
+                BinaryOperation::Addition => instructions.push(Instruction::Add),
+                BinaryOperation::Subtraction => instructions.push(Instruction::Subtract),
+                BinaryOperation::Multiplication => instructions.push(Instruction::Multiply),
+                BinaryOperation::Division => instructions.push(Instruction::Divide),
+                BinaryOperation::Greater => instructions.push(Instruction::Greater),
+                BinaryOperation::Less => instructions.push(Instruction::Less),
+                BinaryOperation::Equal => instructions.push(Instruction::Equal),
+                BinaryOperation::NotEqual => instructions.push(Instruction::NotEqual),
             }
         }
         Expression::Unary { op, expr } => {
             compile_expr(instructions, expr);
             match op {
-                Arithmetic::Subtraction => instructions.push(Instruction::Negate),
+                BinaryOperation::Subtraction => instructions.push(Instruction::Negate),
                 _ => {}
             }
         }

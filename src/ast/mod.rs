@@ -10,7 +10,7 @@ pub enum Statement {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Arithmetic {
+pub enum BinaryOperation {
     Addition,
     Subtraction,
     Multiplication,
@@ -27,11 +27,11 @@ pub enum Expression {
     Identifier(String),
     Binary {
         left: Box<Expression>,
-        op: Arithmetic,
+        op: BinaryOperation,
         right: Box<Expression>,
     },
     Unary {
-        op: Arithmetic,
+        op: BinaryOperation,
         expr: Box<Expression>
     }
 }

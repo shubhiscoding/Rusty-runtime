@@ -1,5 +1,5 @@
 use crate::lexer::Token;
-use crate::ast::{Arithmetic, Expression, Statement};
+use crate::ast::{BinaryOperation, Expression, Statement};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -85,22 +85,22 @@ impl Parser {
 }
 
 
-fn is_operator(tkn: &Token) -> Option<Arithmetic> {
+fn is_arithmetic_operator(tkn: &Token) -> Option<BinaryOperation> {
     match tkn {
-        Token::Addition => Some(Arithmetic::Addition),
-        Token::Subtraction => Some(Arithmetic::Subtraction),
-        Token::Multiplication => Some(Arithmetic::Multiplication),
-        Token::Division => Some(Arithmetic::Division),
+        Token::Addition => Some(BinaryOperation::Addition),
+        Token::Subtraction => Some(BinaryOperation::Subtraction),
+        Token::Multiplication => Some(BinaryOperation::Multiplication),
+        Token::Division => Some(BinaryOperation::Division),
         _ => None
     }
 }
 
-fn is_compare_operator(tkn: &Token) -> Option<Arithmetic> {
+fn is_compare_operator(tkn: &Token) -> Option<BinaryOperation> {
     match tkn {
-        Token::Greater => Some(Arithmetic::Greater),
-        Token::Less => Some(Arithmetic::Less),
-        Token::EqualEqual => Some(Arithmetic::Equal),
-        Token::NotEqual => Some(Arithmetic::NotEqual),
+        Token::Greater => Some(BinaryOperation::Greater),
+        Token::Less => Some(BinaryOperation::Less),
+        Token::EqualEqual => Some(BinaryOperation::Equal),
+        Token::NotEqual => Some(BinaryOperation::NotEqual),
         _ => None
     }
 }
@@ -124,8 +124,8 @@ impl Parser {
 
     fn parse_unary(&mut self) -> Expression {
         if let Some(token) = self.peek() {
-            if let Some(opr) = is_operator(token){
-                if opr == Arithmetic::Subtraction {
+            if let Some(opr) = is_arithmetic_operator(token){
+                if opr == BinaryOperation::Subtraction {
                     self.advance();
                     let expr = self.parse_unary();
                     return Expression::Unary {
@@ -164,8 +164,8 @@ impl Parser {
         let mut left = self.parse_term();
 
         while let Some(token) = self.peek() {
-            if let Some(opr) = is_operator(token){
-                if opr != Arithmetic::Addition && opr != Arithmetic::Subtraction {
+            if let Some(opr) = is_arithmetic_operator(token){
+                if opr != BinaryOperation::Addition && opr != BinaryOperation::Subtraction {
                     break;
                 }
                 self.advance();
@@ -186,8 +186,8 @@ impl Parser {
         let mut left = self.parse_unary();
 
         while let Some(token) = self.peek() {
-            if let Some(opr) = is_operator(token){
-                if opr != Arithmetic::Multiplication && opr != Arithmetic::Division {
+            if let Some(opr) = is_arithmetic_operator(token){
+                if opr != BinaryOperation::Multiplication && opr != BinaryOperation::Division {
                     break;
                 }
                 self.advance();

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, i32};
 
-use crate::{ast::Arithmetic, compiler::Instruction};
+use crate::{ast::BinaryOperation, compiler::Instruction};
 
 pub struct Runtime {
     stack: Vec<i32>,
@@ -47,24 +47,24 @@ impl Runtime {
             panic!("Invalid expression");
         }
     }
-    fn arithmetic_opr(&mut self, opr_type: Arithmetic) {
+    fn arithmetic_opr(&mut self, opr_type: BinaryOperation) {
         let value1 = self.pop_or_panic_stack();
         let value2= self.pop_or_panic_stack();
 
         match opr_type {
-            Arithmetic::Addition => {
+            BinaryOperation::Addition => {
                 let  final_value = value1 + value2;
                 self.stack.push(final_value);
             },
-            Arithmetic::Subtraction => {
+            BinaryOperation::Subtraction => {
                 let  final_value = value2 - value1;
                 self.stack.push(final_value);
             },
-            Arithmetic::Multiplication => {
+            BinaryOperation::Multiplication => {
                 let  final_value = value1 * value2;
                 self.stack.push(final_value);
             },
-            Arithmetic::Division => {
+            BinaryOperation::Division => {
                 if value1 == 0 {
                     panic!("Division by zero");
                 }
@@ -76,15 +76,15 @@ impl Runtime {
     }
 
 
-    fn compare_opr(&mut self, opr_type: Arithmetic) {
+    fn compare_opr(&mut self, opr_type: BinaryOperation) {
         let value1 = self.pop_or_panic_stack();
         let value2= self.pop_or_panic_stack();
 
         let result = match opr_type {
-            Arithmetic::Greater => value2 > value1,
-            Arithmetic::Less => value2 < value1,
-            Arithmetic::Equal => value2 == value1,
-            Arithmetic::NotEqual => value2 != value1,
+            BinaryOperation::Greater => value2 > value1,
+            BinaryOperation::Less => value2 < value1,
+            BinaryOperation::Equal => value2 == value1,
+            BinaryOperation::NotEqual => value2 != value1,
             _ => panic!("Invalid comparison operator")
         };
         self.stack.push(if result { 1 } else { 0 });
@@ -107,32 +107,32 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
                 runtime.print();
             },
             Instruction::Add => {
-                runtime.arithmetic_opr(Arithmetic::Addition);
+                runtime.arithmetic_opr(BinaryOperation::Addition);
             },
             Instruction::Subtract => {
-                runtime.arithmetic_opr(Arithmetic::Subtraction);
+                runtime.arithmetic_opr(BinaryOperation::Subtraction);
             },
             Instruction::Multiply => {
-                runtime.arithmetic_opr(Arithmetic::Multiplication);
+                runtime.arithmetic_opr(BinaryOperation::Multiplication);
             },
             Instruction::Divide => {
-                runtime.arithmetic_opr(Arithmetic::Division);
+                runtime.arithmetic_opr(BinaryOperation::Division);
             },
             Instruction::Negate => {
                 let value = runtime.pop_or_panic_stack();
                 runtime.stack.push(-value);
             },
             Instruction::Greater => {
-                runtime.compare_opr(Arithmetic::Greater);
+                runtime.compare_opr(BinaryOperation::Greater);
             },
             Instruction::Less => {
-                runtime.compare_opr(Arithmetic::Less);
+                runtime.compare_opr(BinaryOperation::Less);
             },
             Instruction::Equal => {
-                runtime.compare_opr(Arithmetic::Equal);
+                runtime.compare_opr(BinaryOperation::Equal);
             },
             Instruction::NotEqual => {
-                runtime.compare_opr(Arithmetic::NotEqual);
+                runtime.compare_opr(BinaryOperation::NotEqual);
             }
         }
     }
