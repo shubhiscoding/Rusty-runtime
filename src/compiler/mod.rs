@@ -4,7 +4,8 @@ use crate::ast::{BinaryOperation, Expression, Statement};
 #[derive(Debug)]
 pub enum Instruction {
     LoadConst(i32),
-    StoreVar(String),
+    DeclareVar(String),
+    AssignVar(String),
     LoadVar(String),
     Print,
     Add,
@@ -54,7 +55,7 @@ pub fn compile_statements(statements: Vec<Statement>) -> Vec<Instruction> {
         match statement {
             Statement::VarDecl { name, value } => {
                 compile_expr(&mut instructions, &value);
-                instructions.push(Instruction::StoreVar(name));
+                instructions.push(Instruction::DeclareVar(name));
             },
             Statement::Print { value } => {
                 compile_expr(&mut instructions, &value);
@@ -95,7 +96,7 @@ pub fn compile_statements(statements: Vec<Statement>) -> Vec<Instruction> {
             },
             Statement::Assignment { name, value } => {
                 compile_expr(&mut instructions, &value);
-                instructions.push(Instruction::StoreVar(name));
+                instructions.push(Instruction::AssignVar(name));
             }
         }
     }

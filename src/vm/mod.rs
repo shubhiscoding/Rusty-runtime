@@ -29,6 +29,18 @@ impl Runtime {
         }
     }
 
+    fn assign_variable(&mut self, var: String) {
+        if self.variables.contains_key(&var) {
+            if let Some(value) = self.stack.pop(){
+                self.variables.insert(var, value);
+            } else {
+                panic!("No defined value to store in {}", var);
+            }
+        } else {
+            panic!("{} is not defined", var);
+        }
+    }
+
     fn load_const(&mut self, value: i32) {
         self.stack.push(value);
     }
@@ -99,8 +111,11 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             Instruction::LoadConst(val) => {
                 runtime.load_const(*val);
             },
-            Instruction::StoreVar(val)  => {
+            Instruction::DeclareVar(val)  => {
                 runtime.store_variable(val.to_string());
+            },
+            Instruction::AssignVar(val) => {
+                runtime.assign_variable(val.to_string());
             },
             Instruction::LoadVar(val) => {
                 runtime.load_variable(val);
