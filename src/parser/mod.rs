@@ -230,8 +230,9 @@ impl Parser {
                 Some(Token::RightBrace) => {}
                 _ => panic!("Expected '}}' after else block"),
             }
+            return Statement::If { condition, body, else_body: Some(else_body)};
         }
 
-        Statement::If { condition, body, else_body: Some(else_body)}
+        Statement::If { condition, body, else_body: None }
     }
 }
