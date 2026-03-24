@@ -6,6 +6,26 @@ pub struct Parser {
     pos: usize,
 }
 
+fn is_arithmetic_operator(tkn: &Token) -> Option<BinaryOperation> {
+    match tkn {
+        Token::Addition => Some(BinaryOperation::Addition),
+        Token::Subtraction => Some(BinaryOperation::Subtraction),
+        Token::Multiplication => Some(BinaryOperation::Multiplication),
+        Token::Division => Some(BinaryOperation::Division),
+        _ => None
+    }
+}
+
+fn is_compare_operator(tkn: &Token) -> Option<BinaryOperation> {
+    match tkn {
+        Token::Greater => Some(BinaryOperation::Greater),
+        Token::Less => Some(BinaryOperation::Less),
+        Token::EqualEqual => Some(BinaryOperation::Equal),
+        Token::NotEqual => Some(BinaryOperation::NotEqual),
+        _ => None
+    }
+}
+
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Self { tokens, pos: 0 }
@@ -20,9 +40,7 @@ impl Parser {
         self.pos += 1;
         token
     }
-}
 
-impl Parser {
     pub fn parse(&mut self) -> Vec<Statement> {
         let mut statements = Vec::new();
 
@@ -32,9 +50,7 @@ impl Parser {
 
         statements
     }
-}
 
-impl Parser {
     fn parse_statement(&mut self) -> Statement {
         match self.peek() {
             Some(Token::Let) => self.parse_var_decl(),
@@ -42,9 +58,7 @@ impl Parser {
             _ => panic!("Unexpected token: {:?}", self.peek()),
         }
     }
-}
 
-impl Parser {
     fn parse_var_decl(&mut self) -> Statement {
         self.advance(); // consume 'let'
 
@@ -67,9 +81,7 @@ impl Parser {
 
         Statement::VarDecl { name, value }
     }
-}
 
-impl Parser {
     fn parse_print(&mut self) -> Statement {
         self.advance(); // consume 'print'
 
@@ -81,61 +93,6 @@ impl Parser {
         }
 
         Statement::Print { value }
-    }
-}
-
-
-fn is_arithmetic_operator(tkn: &Token) -> Option<BinaryOperation> {
-    match tkn {
-        Token::Addition => Some(BinaryOperation::Addition),
-        Token::Subtraction => Some(BinaryOperation::Subtraction),
-        Token::Multiplication => Some(BinaryOperation::Multiplication),
-        Token::Division => Some(BinaryOperation::Division),
-        _ => None
-    }
-}
-
-fn is_compare_operator(tkn: &Token) -> Option<BinaryOperation> {
-    match tkn {
-        Token::Greater => Some(BinaryOperation::Greater),
-        Token::Less => Some(BinaryOperation::Less),
-        Token::EqualEqual => Some(BinaryOperation::Equal),
-        Token::NotEqual => Some(BinaryOperation::NotEqual),
-        _ => None
-    }
-}
-
-impl Parser {
-    fn parse_primary(&mut self) -> Expression {
-        match self.advance() {
-            Some(Token::LeftParentheses) => {
-                let expr = self.parse_comparison();
-                match self.advance() {
-                    Some(Token::RightParentheses) => {}
-                    _ => panic!("Expected ')'"),
-                }
-                expr
-            }
-            Some(Token::Number(n)) => Expression::Number(*n),
-            Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
-            _ => panic!("Invalid expression"),
-        }
-    }
-
-    fn parse_unary(&mut self) -> Expression {
-        if let Some(token) = self.peek() {
-            if let Some(opr) = is_arithmetic_operator(token){
-                if opr == BinaryOperation::Subtraction {
-                    self.advance();
-                    let expr = self.parse_unary();
-                    return Expression::Unary {
-                        op: opr,
-                        expr: Box::new(expr)
-                    }
-                }
-            }
-        }
-        self.parse_primary()
     }
 
     fn parse_comparison(&mut self) -> Expression {
@@ -156,9 +113,6 @@ impl Parser {
         }
         left
     }
-}
-
-impl Parser {
 
     fn parse_expression(&mut self) -> Expression {
         let mut left = self.parse_term();
@@ -202,5 +156,37 @@ impl Parser {
             }
         }
         left
+    }
+
+    fn parse_unary(&mut self) -> Expression {
+        if let Some(token) = self.peek() {
+            if let Some(opr) = is_arithmetic_operator(token){
+                if opr == BinaryOperation::Subtraction {
+                    self.advance();
+                    let expr = self.parse_unary();
+                    return Expression::Unary {
+                        op: opr,
+                        expr: Box::new(expr)
+                    }
+                }
+            }
+        }
+        self.parse_primary()
+    }
+
+    fn parse_primary(&mut self) -> Expression {
+        match self.advance() {
+            Some(Token::LeftParentheses) => {
+                let expr = self.parse_comparison();
+                match self.advance() {
+                    Some(Token::RightParentheses) => {}
+                    _ => panic!("Expected ')'"),
+                }
+                expr
+            }
+            Some(Token::Number(n)) => Expression::Number(*n),
+            Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
+            _ => panic!("Invalid expression"),
+        }
     }
 }
