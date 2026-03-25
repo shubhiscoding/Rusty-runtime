@@ -89,7 +89,7 @@ impl Parser {
             _ => panic!("Expected '='"),
         }
 
-        let value = self.parse_comparison();
+        let value = self.parse_first();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -112,7 +112,7 @@ impl Parser {
             _ => panic!("Expected '='"),
         }
 
-        let value = self.parse_comparison();
+        let value = self.parse_first();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -125,7 +125,7 @@ impl Parser {
     fn parse_print(&mut self) -> Statement {
         self.advance(); // consume 'print'
 
-        let value = self.parse_comparison();
+        let value = self.parse_first();
 
         match self.advance() {
             Some(Token::Semicolon) => {}
@@ -133,6 +133,36 @@ impl Parser {
         }
 
         Statement::Print { value }
+    }
+
+    fn parse_and(&mut self) -> Expression {
+        let mut left = self.parse_comparison();
+
+        while let Some(Token::And) = self.peek() {
+            self.advance();
+            let right = self.parse_comparison();
+            left = Expression::Binary {
+                left: Box::new(left),
+                op: BinaryOperation::And,
+                right: Box::new(right),
+            };
+        }
+        left
+    }
+
+    fn parse_or(&mut self) -> Expression {
+        let mut left = self.parse_and();
+
+        while let Some(Token::Or) = self.peek() {
+            self.advance();
+            let right = self.parse_and();
+            left = Expression::Binary {
+                left: Box::new(left),
+                op: BinaryOperation::Or,
+                right: Box::new(right),
+            };
+        }
+        left
     }
 
     fn parse_comparison(&mut self) -> Expression {
@@ -217,7 +247,7 @@ impl Parser {
     fn parse_primary(&mut self) -> Expression {
         match self.advance() {
             Some(Token::LeftParentheses) => {
-                let expr = self.parse_comparison();
+                let expr = self.parse_first();
                 match self.advance() {
                     Some(Token::RightParentheses) => {}
                     _ => panic!("Expected ')'"),
@@ -238,7 +268,7 @@ impl Parser {
             _ => panic!("Expected '(' after 'if'"),
         }
 
-        let condition = self.parse_comparison();
+        let condition = self.parse_first();
 
         match self.advance() {
             Some(Token::RightParentheses) => {}
@@ -295,7 +325,7 @@ impl Parser {
             _ => panic!("Expected '(' after 'while'"),
         }
 
-        let condition = self.parse_comparison();
+        let condition = self.parse_first();
 
         match self.advance() {
             Some(Token::RightParentheses) => {}
@@ -321,5 +351,9 @@ impl Parser {
         }
 
         Statement::While { condition, body }
+     }
+
+     fn parse_first(&mut self) -> Expression {
+        self.parse_or()
      }
 }

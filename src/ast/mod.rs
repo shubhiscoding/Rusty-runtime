@@ -21,7 +21,7 @@ pub enum Statement {
         value: Expression,
     },
     Break,
-    Continue
+    Continue,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -34,6 +34,8 @@ pub enum BinaryOperation {
     Less,
     Equal,
     NotEqual,
+    And,
+    Or
 }
 
 #[derive(Debug, Clone)]

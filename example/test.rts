@@ -1,14 +1,13 @@
 let x = (2 + (3 * (4 + 2))) / 2;
-print x;
 
-if (x > 5) {
-    print x;
-} else {
-    print 0;
-}
-
-if (x < 5) {
-    print 100;
-} else {
-    print 0;
+while (x>5){
+    if(x==8){
+        x=x-1;
+        continue;
+    } else {
+        if (x>0 && 10>8){
+            print x;
+        }
+    }
+    x=x-1;
 }

@@ -21,7 +21,9 @@ pub enum Token {
     Else,
     While,
     Break,
-    Continue
+    Continue,
+    And,
+    Or
 }
 
 
@@ -131,8 +133,36 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 }
 
                 tokens.push(Token::Number(num.parse().unwrap()));
-            }
+            },
 
+            '&' => {
+                chars.next();
+                if let Some(&ch) = chars.peek() {
+                    if ch == '&' {
+                        tokens.push(Token::And);
+                        chars.next();
+                    } else {
+                        panic!("Unexpected character: {}", ch);
+                    }
+                } else {
+                    panic!("Unexpected character: {}", ch);
+                }
+            },
+
+            '|' => {
+                chars.next();
+                if let Some(&ch) = chars.peek() {
+                    if ch == '|' {
+                        tokens.push(Token::Or);
+                        chars.next();
+                    } else {
+                        panic!("Unexpected character: {}", ch);
+                    }
+                } else {
+                    panic!("Unexpected character: {}", ch);
+                }
+            },
+            
             'a'..='z' | 'A'..='Z' => {
                 let mut ident = String::new();
 

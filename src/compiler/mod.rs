@@ -23,7 +23,9 @@ pub enum Instruction {
     Equal,
     NotEqual,
     JumpIfFalse(usize),
-    Jump(usize)
+    Jump(usize),
+    LogicalAnd,
+    LogicalOr
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -42,6 +44,8 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                 BinaryOperation::Less => instructions.push(Instruction::Less),
                 BinaryOperation::Equal => instructions.push(Instruction::Equal),
                 BinaryOperation::NotEqual => instructions.push(Instruction::NotEqual),
+                BinaryOperation::And => {instructions.push(Instruction::LogicalAnd);}
+                BinaryOperation::Or => {instructions.push(Instruction::LogicalOr);}
             }
         }
         Expression::Unary { op, expr } => {
