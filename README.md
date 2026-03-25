@@ -78,7 +78,10 @@ The WASM backend will:
 * ➕ Arithmetic with precedence and parentheses
 * ➖ Unary operators (`-x`, `-(2 + 3)`)
 * 🔀 Comparison operators (`>`, `<`, `==`, `!=`)
+* 🔗 Logical operators (`&&`, `||`) with short-circuit evaluation
 * 🔁 Control flow (`if` / `else`) with backpatching
+* 🔄 Loops (`while`, `for`) with `break` / `continue`
+* 🔢 Increment / decrement (`i++`, `i--`)
 * 🖨️ Print statements (`print x;`)
 * 🔁 REPL (interactive shell)
 * 📂 File execution (`rusty run file.rts`)
@@ -89,26 +92,39 @@ The WASM backend will:
 
 ```ts
 let x = (2 + (3 * (4 + 2))) / 2;
-print x;
+x++;
 
-if (x > 5) {
-    print x;
-} else {
-    print 0;
+while (x > 5) {
+    if (x == 8) {
+        x = x - 1;
+        continue;
+    } else {
+        if (x > 0 && 10 > 8) {
+            print x;
+        }
+    }
+    x--;
 }
 
-if (x < 5) {
-    print 100;
-} else {
-    print 0;
+for (let i = 0; i < x; i++) {
+    if (i == 1) {
+        continue;
+    }
+    if (i == 2) {
+        break;
+    }
+    print i;
 }
 ```
 
 Output:
 
 ```
+11
 10
-10
+9
+7
+6
 0
 ```
 
@@ -174,7 +190,9 @@ cargo run -- repl
 * [x] `while` loops
 * [x] `break` / `continue`
 * [x] Variable reassignment
-* [ ] `for` loops
+* [x] `for` loops
+* [x] Logical operators (`&&`, `||`) with short-circuiting
+* [x] Increment / decrement (`++`, `--`)
 * [ ] Functions
 * [ ] Type annotations
 * [ ] Arrays and objects

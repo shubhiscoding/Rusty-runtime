@@ -1,23 +1,23 @@
 let x = (2 + (3 * (4 + 2))) / 2;
 x++;
-while (x>5){
-    if(x==8){
-        x=x-1;
+
+while (x > 5) {
+    if (x == 8) {
+        x = x - 1;
         continue;
     } else {
-        if (x>0 && 10>8){
+        if (x > 0 && 10 > 8) {
             print x;
         }
     }
     x--;
 }
 
-for(let i =0; i<x; i++){
-    if(i==1){
+for (let i = 0; i < x; i++) {
+    if (i == 1) {
         continue;
     }
-    if(i==2){
-        print i == 2 && x > i;
+    if (i == 2) {
         break;
     }
     print i;
