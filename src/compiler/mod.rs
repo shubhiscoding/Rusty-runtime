@@ -24,8 +24,9 @@ pub enum Instruction {
     NotEqual,
     JumpIfFalse(usize),
     Jump(usize),
-    LogicalAnd,
-    LogicalOr
+    JumpIfTrue(usize),
+    DuplicateTop,
+    PopTop
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -33,8 +34,12 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
         Expression::Number(x) => instructions.push(Instruction::LoadConst(*x)),
         Expression::Identifier(val) => instructions.push(Instruction::LoadVar(val.to_string())),
         Expression::Binary { left, op, right } => {
-            compile_expr(instructions, left);
-            compile_expr(instructions, right);
+            if *op != BinaryOperation::And && *op != BinaryOperation::Or {
+                compile_expr(instructions, left);
+                compile_expr(instructions, right);
+            } else {
+                compile_expr(instructions, left);
+            }
             match op {
                 BinaryOperation::Addition => instructions.push(Instruction::Add),
                 BinaryOperation::Subtraction => instructions.push(Instruction::Subtract),
@@ -44,8 +49,22 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                 BinaryOperation::Less => instructions.push(Instruction::Less),
                 BinaryOperation::Equal => instructions.push(Instruction::Equal),
                 BinaryOperation::NotEqual => instructions.push(Instruction::NotEqual),
-                BinaryOperation::And => {instructions.push(Instruction::LogicalAnd);}
-                BinaryOperation::Or => {instructions.push(Instruction::LogicalOr);}
+                BinaryOperation::And => {
+                    instructions.push(Instruction::DuplicateTop);
+                    instructions.push(Instruction::JumpIfFalse(0));
+                    let jump_instructions_index = instructions.len() - 1;
+                    instructions.push(Instruction::PopTop);
+                    compile_expr(instructions, right);
+                    instructions[jump_instructions_index] = Instruction::JumpIfFalse(instructions.len());
+                }
+                BinaryOperation::Or => {
+                    instructions.push(Instruction::DuplicateTop);
+                    instructions.push(Instruction::JumpIfTrue(0));
+                    let jump_instructions_index = instructions.len() - 1;
+                    instructions.push(Instruction::PopTop);
+                    compile_expr(instructions, right);
+                    instructions[jump_instructions_index] = Instruction::JumpIfTrue(instructions.len());
+                }
             }
         }
         Expression::Unary { op, expr } => {

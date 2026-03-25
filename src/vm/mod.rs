@@ -174,11 +174,22 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
                 i = *idx;
                 continue;
             },
-            Instruction::LogicalAnd => {
-                runtime.logical_opr(BinaryOperation::And);
+            Instruction::JumpIfTrue(idx) => {
+                let condition = runtime.pop_or_panic_stack();
+                if condition != 0 {
+                    i = *idx;
+                    continue;
+                }   
             },
-            Instruction::LogicalOr => {
-                runtime.logical_opr(BinaryOperation::Or);
+            Instruction::DuplicateTop => {
+                if let Some(value) = runtime.stack.last() {
+                    runtime.stack.push(*value);
+                } else {
+                    panic!("No defined value to duplicate");
+                }
+            },
+            Instruction::PopTop => {
+                runtime.pop_or_panic_stack();
             }
         }
         i += 1;
