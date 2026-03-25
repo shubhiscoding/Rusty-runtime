@@ -25,7 +25,8 @@ pub enum Token {
     And,
     Or,
     Increment,
-    Decrement
+    Decrement,
+    For
 }
 
 
@@ -200,6 +201,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                     "if" => tokens.push(Token::If),
                     "else" => tokens.push(Token::Else),
                     "while" => tokens.push(Token::While),
+                    "for" => tokens.push(Token::For),
                     "break" => tokens.push(Token::Break),
                     "continue" => tokens.push(Token::Continue),
                     _ => tokens.push(Token::Identifier(ident)),

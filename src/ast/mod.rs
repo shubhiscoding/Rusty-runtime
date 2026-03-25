@@ -16,6 +16,12 @@ pub enum Statement {
         condition: Expression,
         body: Vec<Statement>
     },
+    For {
+        init: Box<Statement>,
+        condition: Expression,
+        update: Box<Statement>,
+        body: Vec<Statement>
+    },
     Assignment {
         name: String,
         value: Expression,

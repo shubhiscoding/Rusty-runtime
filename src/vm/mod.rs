@@ -101,18 +101,6 @@ impl Runtime {
         };
         self.stack.push(if result { 1 } else { 0 });
     }
-
-    fn logical_opr(&mut self, opr_type: BinaryOperation) {
-        let value1 = self.pop_or_panic_stack();
-        let value2= self.pop_or_panic_stack();
-
-        let result = match opr_type {
-            BinaryOperation::And => value2 != 0 && value1 != 0,
-            BinaryOperation::Or => value2 != 0 || value1 != 0,
-            _ => panic!("Invalid logical operator")
-        };
-        self.stack.push(if result { 1 } else { 0 });
-    }
 }
 
 pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {

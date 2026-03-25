@@ -3,6 +3,7 @@ use crate::ast::{BinaryOperation, Expression, Statement};
 pub struct LoopContext {
     start: usize,
     break_placeholders: Vec<usize>,
+    continue_placeholders: Vec<usize>,
 }
 
 
@@ -120,8 +121,43 @@ pub fn compile_statements(
                 let mut ctx = LoopContext {
                     start: loop_start_index,
                     break_placeholders: vec![],
+                    continue_placeholders: vec![],
                 };
                 compile_statements(body, instructions, Some(&mut ctx));
+
+                for idx in ctx.continue_placeholders {
+                    instructions[idx] = Instruction::Jump(ctx.start);
+                }
+
+                instructions.push(Instruction::Jump(loop_start_index));
+                instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
+
+                for idx in ctx.break_placeholders {
+                    instructions[idx] = Instruction::Jump(instructions.len());
+                }
+            },
+            Statement::For { init, condition, update, body } => {
+                compile_statements(vec![*init], instructions, loop_ctx.as_deref_mut());
+
+                let loop_start_index = instructions.len();
+                compile_expr(instructions, &condition);
+
+                let jump_if_false_index = instructions.len();
+                instructions.push(Instruction::JumpIfFalse(0));
+
+                let mut ctx = LoopContext {
+                    start: 0,
+                    break_placeholders: vec![],
+                    continue_placeholders: vec![],
+                };
+                compile_statements(body, instructions, Some(&mut ctx));
+
+                let update_start = instructions.len();
+                for idx in ctx.continue_placeholders {
+                    instructions[idx] = Instruction::Jump(update_start);
+                }
+
+                compile_statements(vec![*update], instructions, None);
 
                 instructions.push(Instruction::Jump(loop_start_index));
                 instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
@@ -144,7 +180,8 @@ pub fn compile_statements(
             },
             Statement::Continue => {
                 if let Some(ctx) = loop_ctx.as_deref_mut() {
-                    instructions.push(Instruction::Jump(ctx.start));
+                    instructions.push(Instruction::Jump(0));
+                    ctx.continue_placeholders.push(instructions.len() - 1);
                 } else {
                     panic!("'continue' used outside of a loop");
                 }

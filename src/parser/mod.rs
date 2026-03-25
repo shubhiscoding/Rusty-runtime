@@ -64,6 +64,7 @@ impl Parser {
             }
             Some(Token::If) => self.parse_if(),
             Some(Token::While) => self.parse_while(),
+            Some(Token::For) => self.parse_for(),
             Some(Token::Break) => {
                 self.advance();
                 if self.advance() != Some(&Token::Semicolon) {
@@ -81,6 +82,33 @@ impl Parser {
             _ => panic!("Unexpected token: {:?}", self.peek()),
         }
     }
+
+    fn parse_update(&mut self) -> Statement {
+        // parse update
+        let name = match self.advance() {
+            Some(Token::Identifier(name)) => name.clone(),
+            _ => panic!("Expected identifier in for update"),
+        };
+        match self.advance() {
+            Some(Token::Increment) => Statement::Assignment {
+                name: name.clone(),
+                value: Expression::Binary {
+                    left: Box::new(Expression::Identifier(name)),
+                    op: BinaryOperation::Addition,
+                    right: Box::new(Expression::Number(1)),
+                },
+            },
+            Some(Token::Decrement) => Statement::Assignment {
+                name: name.clone(),
+                value: Expression::Binary {
+                    left: Box::new(Expression::Identifier(name)),
+                    op: BinaryOperation::Subtraction,
+                    right: Box::new(Expression::Number(1)),
+                },
+            },
+            _ => panic!("Expected '++' or '--' in for update"),
+        }
+     }
 
     fn parse_assignment(&mut self, name: String) -> Statement {
         self.advance(); // consume identifier
@@ -377,7 +405,52 @@ impl Parser {
         Statement::While { condition, body }
      }
 
-     fn parse_first(&mut self) -> Expression {
+    fn parse_for(&mut self) -> Statement {
+        self.advance(); // consume 'for'
+
+        match self.advance() {
+            Some(Token::LeftParentheses) => {}
+            _ => panic!("Expected '(' after 'for'"),
+        }
+
+        let init = self.parse_statement();
+
+        let condition = self.parse_first();
+
+        match self.advance() {
+            Some(Token::Semicolon) => {}
+            _ => panic!("Expected ';' after for condition"),
+        }
+
+        let update = self.parse_update();
+
+        match self.advance() {
+            Some(Token::RightParentheses) => {}
+            _ => panic!("Expected ')' after for condition"),
+        }
+
+        match self.advance() {
+            Some(Token::LeftBrace) => {}
+            _ => panic!("Expected '{{'"),
+        }
+
+        let mut body = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::RightBrace {
+                break;
+            }
+            body.push(self.parse_statement());
+        }
+
+        match self.advance() {
+            Some(Token::RightBrace) => {}
+            _ => panic!("Expected '}}' after for block"),
+        }
+
+        Statement::For { init: Box::new(init), condition, update: Box::new(update), body }
+    }
+
+    fn parse_first(&mut self) -> Expression {
         self.parse_or()
-     }
+    }
 }
