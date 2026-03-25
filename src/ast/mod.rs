@@ -21,7 +21,7 @@ pub enum Statement {
         value: Expression,
     },
     Break,
-    Continue,
+    Continue
 }
 
 #[derive(Debug, Clone, PartialEq)]

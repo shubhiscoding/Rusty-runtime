@@ -23,7 +23,9 @@ pub enum Token {
     Break,
     Continue,
     And,
-    Or
+    Or,
+    Increment,
+    Decrement
 }
 
 
@@ -76,13 +78,31 @@ pub fn tokenize(input: &str) -> Vec<Token> {
             }
 
             '+' => {
-                tokens.push(Token::Addition);
                 chars.next();
+                if let Some(&ch) = chars.peek() {
+                    if ch == '+' {
+                        tokens.push(Token::Increment);
+                        chars.next();
+                    } else {
+                        tokens.push(Token::Addition);
+                    }
+                } else {
+                    panic!("Unexpected character: {}", ch);
+                }
             }
 
             '-' => {
-                tokens.push(Token::Subtraction);
                 chars.next();
+                if let Some(&ch) = chars.peek() {
+                    if ch == '-' {
+                        tokens.push(Token::Decrement);
+                        chars.next();
+                    } else {
+                        tokens.push(Token::Subtraction);
+                    }
+                } else {
+                    panic!("Unexpected character: {}", ch);
+                }
             }
 
             '*' => {
@@ -162,7 +182,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                     panic!("Unexpected character: {}", ch);
                 }
             },
-            
+
             'a'..='z' | 'A'..='Z' => {
                 let mut ident = String::new();
 

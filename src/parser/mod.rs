@@ -86,6 +86,30 @@ impl Parser {
         self.advance(); // consume identifier
         match self.advance() {
             Some(Token::Equals) => {}
+            Some(Token::Increment) => {
+                let value = Expression::Binary {
+                    left: Box::new(Expression::Identifier(name.clone())),
+                    op: BinaryOperation::Addition,
+                    right: Box::new(Expression::Number(1)),
+                };
+                match self.advance() {
+                    Some(Token::Semicolon) => {}
+                    _ => panic!("Expected ';'"),
+                }
+                return Statement::Assignment { name, value }
+            },
+            Some(Token::Decrement) => {
+                let value = Expression::Binary {
+                    left: Box::new(Expression::Identifier(name.clone())),
+                    op: BinaryOperation::Subtraction,
+                    right: Box::new(Expression::Number(1)),
+                };
+                match self.advance() {
+                    Some(Token::Semicolon) => {}
+                    _ => panic!("Expected ';'"),
+                }
+                return Statement::Assignment { name, value }
+            },
             _ => panic!("Expected '='"),
         }
 
