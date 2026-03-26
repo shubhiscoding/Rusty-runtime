@@ -76,8 +76,9 @@ The WASM backend will:
 * ⚡ Bytecode compiler
 * 🧮 Stack-based virtual machine
 * ➕ Arithmetic with precedence and parentheses
+* 📝 String literals and concatenation (`"hello" + " world"`)
 * ➖ Unary operators (`-x`, `-(2 + 3)`)
-* 🔀 Comparison operators (`>`, `<`, `==`, `!=`)
+* 🔀 Comparison operators (`>`, `<`, `==`, `!=`) for numbers and strings
 * 🔗 Logical operators (`&&`, `||`) with short-circuit evaluation
 * 🔁 Control flow (`if` / `else`) with backpatching
 * 🔄 Loops (`while`, `for`) with `break` / `continue`
@@ -93,6 +94,14 @@ The WASM backend will:
 ```ts
 let x = (2 + (3 * (4 + 2))) / 2;
 x++;
+
+if (x > 10) {
+    print "x is greater than 10";
+} else {
+    print "x is small";
+}
+
+print "10" + "10";
 
 while (x > 5) {
     if (x == 8) {
@@ -115,17 +124,28 @@ for (let i = 0; i < x; i++) {
     }
     print i;
 }
+
+let n = "nope" + x;
+print n;
+
+if (n) {
+    print "Works";
+}
 ```
 
 Output:
 
 ```
+x is greater than 10
+1010
 11
 10
 9
 7
 6
 0
+nope5
+Works
 ```
 
 ---
@@ -184,8 +204,9 @@ cargo run -- repl
 
 ### Language Features
 
-* [ ] Strings
-* [x] Comparisons (`>`, `<`, `==`, `!=`)
+* [x] Strings (literals, concatenation, mixed-type concat)
+* [x] Truthy/falsy values (`0` and `""` are falsy)
+* [x] Comparisons (`>`, `<`, `==`, `!=`) for numbers and strings
 * [x] `if` / `else`
 * [x] `while` loops
 * [x] `break` / `continue`
