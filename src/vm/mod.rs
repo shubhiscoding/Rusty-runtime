@@ -1,21 +1,31 @@
-use std::{collections::HashMap, i32};
+use std::{collections::HashMap, fmt};
 
-use crate::{ast::BinaryOperation, compiler::Instruction};
+use crate::{ast::{BinaryOperation, Value}, compiler::Instruction};
+
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Value::Number(n) => write!(f, "{}", n),
+            Value::String(s) => write!(f, "{}", s),
+        }
+    }
+}
 
 pub struct Runtime {
-    stack: Vec<i32>,
-    variables: HashMap<String, i32>,
+    stack: Vec<Value>,
+    variables: HashMap<String, Value>,
 }
 
 impl Runtime {
 
     pub fn new() -> Self {
-        Self { stack: Vec::new(), variables: HashMap::<String, i32>::new() }
+        Self { stack: Vec::new(), variables: HashMap::<String, Value>::new() }
     }
 
     fn load_variable(&mut self, var: &str) {
         if let Some(value) = self.variables.get(var) {
-            self.stack.push(*value);
+            self.stack.push((*value).clone());
         } else {
             panic!("{} is not defined", var);
         }
@@ -41,7 +51,7 @@ impl Runtime {
         }
     }
 
-    fn load_const(&mut self, value: i32) {
+    fn load_const(&mut self, value: Value) {
         self.stack.push(value);
     }
 
@@ -52,7 +62,7 @@ impl Runtime {
             panic!("No defined value to print");
         }
     }
-    fn pop_or_panic_stack(&mut self) -> i32 {
+    fn pop_or_panic_stack(&mut self) -> Value {
         if let Some(value) = self.stack.pop(){
             return value;
         } else {
@@ -65,23 +75,40 @@ impl Runtime {
 
         match opr_type {
             BinaryOperation::Addition => {
-                let  final_value = value1 + value2;
-                self.stack.push(final_value);
+                if let (Value::Number(v1), Value::Number(v2)) = (&value1, &value2) {
+                    let final_value = v1 + v2;
+                    self.stack.push(Value::Number(final_value));
+                } else {
+                    let final_value = format!("{}{}", value2, value1);
+                    self.stack.push(Value::String(final_value));
+                }
             },
             BinaryOperation::Subtraction => {
-                let  final_value = value2 - value1;
-                self.stack.push(final_value);
+                if let (Value::Number(v1), Value::Number(v2)) = (value1, value2) {
+                    let  final_value = v2 - v1;
+                    self.stack.push(Value::Number(final_value));
+                }else {
+                    panic!("Subtraction is only supported for numbers");
+                }
             },
             BinaryOperation::Multiplication => {
-                let  final_value = value1 * value2;
-                self.stack.push(final_value);
+                if let (Value::Number(v1), Value::Number(v2)) = (value1, value2) {
+                    let final_value = v1 * v2;
+                    self.stack.push(Value::Number(final_value));
+                } else {
+                    panic!("Multiplication is only supported for numbers");
+                }
             },
             BinaryOperation::Division => {
-                if value1 == 0 {
-                    panic!("Division by zero");
+                if let (Value::Number(v1), Value::Number(v2)) = (value1, value2) {
+                    if v1 == 0 {
+                        panic!("Division by zero");
+                    }
+                    let final_value = v2 / v1;
+                    self.stack.push(Value::Number(final_value));
+                } else {
+                    panic!("Division is only supported for numbers");
                 }
-                let final_value = value2 / value1;
-                self.stack.push(final_value);
             }
             _ => panic!("Invalid arithmetic operator")
         }
@@ -93,13 +120,25 @@ impl Runtime {
         let value2= self.pop_or_panic_stack();
 
         let result = match opr_type {
-            BinaryOperation::Greater => value2 > value1,
-            BinaryOperation::Less => value2 < value1,
+            BinaryOperation::Greater => {
+                if let (Value::Number(v1), Value::Number(v2)) = (value1, value2) {
+                    v2 > v1
+                } else{
+                    panic!("Greater comparison is only supported for numbers");
+                }
+            },
+            BinaryOperation::Less => {
+                if let (Value::Number(v1), Value::Number(v2)) = (value1, value2) {
+                    v2 < v1
+                } else{
+                    panic!("Less comparison is only supported for numbers");
+                }
+            },
             BinaryOperation::Equal => value2 == value1,
             BinaryOperation::NotEqual => value2 != value1,
             _ => panic!("Invalid comparison operator")
         };
-        self.stack.push(if result { 1 } else { 0 });
+        self.stack.push(if result { Value::Number(1) } else { Value::Number(0) });
     }
 }
 
@@ -109,7 +148,7 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
         let instruction = &instructions[i];
         match instruction {
             Instruction::LoadConst(val) => {
-                runtime.load_const(*val);
+                runtime.load_const((*val).clone());
             },
             Instruction::DeclareVar(val)  => {
                 runtime.store_variable(val.to_string());
@@ -137,7 +176,11 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             },
             Instruction::Negate => {
                 let value = runtime.pop_or_panic_stack();
-                runtime.stack.push(-value);
+                if let Value::Number(num) = value {
+                    runtime.stack.push(Value::Number(-num));
+                } else {
+                    panic!("Negation is only supported for numbers");
+                }
             },
             Instruction::Greater => {
                 runtime.compare_opr(BinaryOperation::Greater);
@@ -153,7 +196,7 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             },
             Instruction::JumpIfFalse(idx) => {
                 let condition = runtime.pop_or_panic_stack();
-                if condition == 0 {
+                if condition == Value::Number(0) {
                     i = *idx;
                     continue;
                 }
@@ -164,14 +207,14 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             },
             Instruction::JumpIfTrue(idx) => {
                 let condition = runtime.pop_or_panic_stack();
-                if condition != 0 {
+                if condition != Value::Number(0) {
                     i = *idx;
                     continue;
                 }   
             },
             Instruction::DuplicateTop => {
                 if let Some(value) = runtime.stack.last() {
-                    runtime.stack.push(*value);
+                    runtime.stack.push((*value).clone());
                 } else {
                     panic!("No defined value to duplicate");
                 }

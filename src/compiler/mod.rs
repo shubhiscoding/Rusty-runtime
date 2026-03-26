@@ -1,4 +1,4 @@
-use crate::ast::{BinaryOperation, Expression, Statement};
+use crate::ast::{BinaryOperation, Expression, Statement, Value};
 
 pub struct LoopContext {
     start: usize,
@@ -9,7 +9,7 @@ pub struct LoopContext {
 
 #[derive(Debug)]
 pub enum Instruction {
-    LoadConst(i32),
+    LoadConst(Value),
     DeclareVar(String),
     AssignVar(String),
     LoadVar(String),
@@ -32,7 +32,8 @@ pub enum Instruction {
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
     match expr {
-        Expression::Number(x) => instructions.push(Instruction::LoadConst(*x)),
+        Expression::Number(x) => instructions.push(Instruction::LoadConst(Value::Number(*x))),
+        Expression::String(s) => instructions.push(Instruction::LoadConst(Value::String(s.clone()))),
         Expression::Identifier(val) => instructions.push(Instruction::LoadVar(val.to_string())),
         Expression::Binary { left, op, right } => {
             if *op != BinaryOperation::And && *op != BinaryOperation::Or {

@@ -1,5 +1,12 @@
 let x = (2 + (3 * (4 + 2))) / 2;
 x++;
+if(x>10){
+    print "I was here x is greater then 10";
+}else{
+    print "I'm here x is small";
+}
+
+print "10"+"10";
 
 while (x > 5) {
     if (x == 8) {
@@ -22,3 +29,8 @@ for (let i = 0; i < x; i++) {
     }
     print i;
 }
+
+let m = 100;
+let n = "nope"+x;
+
+print n;

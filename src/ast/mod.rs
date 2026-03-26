@@ -48,6 +48,7 @@ pub enum BinaryOperation {
 pub enum Expression {
     Number(i32),
     Identifier(String),
+    String(String),
     Binary {
         left: Box<Expression>,
         op: BinaryOperation,
@@ -57,4 +58,10 @@ pub enum Expression {
         op: BinaryOperation,
         expr: Box<Expression>
     }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum Value {
+    Number(i32),
+    String(String),
 }

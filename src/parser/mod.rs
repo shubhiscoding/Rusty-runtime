@@ -308,6 +308,7 @@ impl Parser {
             }
             Some(Token::Number(n)) => Expression::Number(*n),
             Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
+            Some(Token::String(s)) => Expression::String(s.clone()),
             _ => panic!("Invalid expression"),
         }
     }

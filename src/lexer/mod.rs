@@ -2,6 +2,7 @@
 pub enum Token {
     Let,
     Identifier(String),
+    String(String),
     Number(i32),
     Equals,
     Semicolon,
@@ -38,6 +39,23 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         match ch {
             ' ' | '\n' | '\t' => {
                 chars.next();
+            }
+
+            '"' => {
+                chars.next();
+                let mut string = String::new();
+
+                while let Some(&c) = chars.peek() {
+                    if c == '"' {
+                        chars.next();
+                        break;
+                    } else {
+                        string.push(c);
+                        chars.next();
+                    }
+                }
+
+                tokens.push(Token::String(string));
             }
 
             '=' => {
