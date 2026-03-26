@@ -121,17 +121,23 @@ impl Runtime {
 
         let result = match opr_type {
             BinaryOperation::Greater => {
-                if let (Value::Number(v1), Value::Number(v2)) = (value1, value2) {
-                    v2 > v1
-                } else{
-                    panic!("Greater comparison is only supported for numbers");
+                if matches!((&value1, &value2),
+                    (Value::Number(_), Value::Number(_)) |
+                    (Value::String(_), Value::String(_))
+                ) {
+                    value2 > value1
+                } else {
+                    panic!("Greater comparison is only supported between values of the same type");
                 }
             },
             BinaryOperation::Less => {
-                if let (Value::Number(v1), Value::Number(v2)) = (value1, value2) {
-                    v2 < v1
-                } else{
-                    panic!("Less comparison is only supported for numbers");
+                if matches!((&value1, &value2),
+                    (Value::Number(_), Value::Number(_)) |
+                    (Value::String(_), Value::String(_))
+                ) {
+                    value2 < value1
+                } else {
+                    panic!("Less comparison is only supported between values of the same type");
                 }
             },
             BinaryOperation::Equal => value2 == value1,
@@ -196,7 +202,9 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             },
             Instruction::JumpIfFalse(idx) => {
                 let condition = runtime.pop_or_panic_stack();
-                if condition == Value::Number(0) {
+                if matches!(condition, Value::Number(0)) ||
+                   matches!(condition, Value::String(s) if s.is_empty())
+                {
                     i = *idx;
                     continue;
                 }
@@ -207,10 +215,12 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             },
             Instruction::JumpIfTrue(idx) => {
                 let condition = runtime.pop_or_panic_stack();
-                if condition != Value::Number(0) {
+                if matches!(condition, Value::Number(n) if n != 0) ||
+                   matches!(condition, Value::String(s) if !s.is_empty())
+                {
                     i = *idx;
                     continue;
-                }   
+                }  
             },
             Instruction::DuplicateTop => {
                 if let Some(value) = runtime.stack.last() {
