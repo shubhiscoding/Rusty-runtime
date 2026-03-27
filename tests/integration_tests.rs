@@ -485,3 +485,322 @@ fn test_two_string_numbers_concat() {
     let out = run_rts(r#"print "10" + "10";"#);
     assert_eq!(out, "1010");
 }
+
+// ========== Functions ==========
+
+#[test]
+fn test_basic_function() {
+    let code = r#"
+function add(a, b) {
+    return a + b;
+}
+print add(2, 3);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5");
+}
+
+#[test]
+fn test_function_single_param() {
+    let code = r#"
+function double(x) {
+    return x + x;
+}
+print double(7);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "14");
+}
+
+#[test]
+fn test_function_no_params() {
+    let code = r#"
+function greet() {
+    return "hello";
+}
+print greet();
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "hello");
+}
+
+#[test]
+fn test_function_return_value_in_variable() {
+    let code = r#"
+function add(a, b) {
+    return a + b;
+}
+let result = add(10, 20);
+print result;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "30");
+}
+
+#[test]
+fn test_function_with_expressions_as_args() {
+    let code = r#"
+function add(a, b) {
+    return a + b;
+}
+print add(2 + 3, 4 * 2);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "13");
+}
+
+#[test]
+fn test_nested_function_calls() {
+    let code = r#"
+function add(a, b) {
+    return a + b;
+}
+print add(add(1, 2), add(3, 4));
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "10");
+}
+
+#[test]
+fn test_nested_call_as_inner_arg() {
+    let code = r#"
+function add(a, b) {
+    return a + b;
+}
+let x = 5;
+let m = 100;
+print add(add(x, 10), m);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "115");
+}
+
+#[test]
+fn test_function_with_if_else() {
+    let code = r#"
+function max(a, b) {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+print max(10, 20);
+print max(30, 5);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "20\n30");
+}
+
+#[test]
+fn test_function_with_loop() {
+    let code = r#"
+function sum(n) {
+    let total = 0;
+    let i = 1;
+    while (i < n + 1) {
+        total = total + i;
+        i++;
+    }
+    return total;
+}
+print sum(5);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "15");
+}
+
+#[test]
+fn test_function_local_scope() {
+    let code = r#"
+let x = 100;
+function getFive() {
+    let x = 5;
+    return x;
+}
+print getFive();
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5\n100");
+}
+
+#[test]
+fn test_function_reads_outer_variable() {
+    let code = r#"
+let x = 42;
+function getX() {
+    return x;
+}
+print getX();
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "42");
+}
+
+#[test]
+fn test_function_string_return() {
+    let code = r#"
+function greet(name) {
+    return "hello " + name;
+}
+print greet("world");
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "hello world");
+}
+
+#[test]
+fn test_function_string_concat_args() {
+    let code = r#"
+function concat(a, b) {
+    return a + b;
+}
+print concat("foo", "bar");
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "foobar");
+}
+
+#[test]
+fn test_multiple_functions() {
+    let code = r#"
+function add(a, b) {
+    return a + b;
+}
+function mul(a, b) {
+    return a * b;
+}
+print add(2, 3);
+print mul(4, 5);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5\n20");
+}
+
+#[test]
+fn test_function_calling_another_function() {
+    let code = r#"
+function double(x) {
+    return x + x;
+}
+function quadruple(x) {
+    return double(double(x));
+}
+print quadruple(3);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "12");
+}
+
+#[test]
+fn test_function_result_in_expression() {
+    let code = r#"
+function add(a, b) {
+    return a + b;
+}
+let x = add(3, 4) + 10;
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "17");
+}
+
+#[test]
+fn test_function_result_in_condition() {
+    let code = r#"
+function isBig(x) {
+    if (x > 10) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+if (isBig(15)) {
+    print "big";
+} else {
+    print "small";
+}
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "big");
+}
+
+#[test]
+fn test_function_called_multiple_times() {
+    let code = r#"
+function inc(x) {
+    return x + 1;
+}
+let a = inc(0);
+let b = inc(a);
+let c = inc(b);
+print c;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "3");
+}
+
+#[test]
+fn test_function_with_break_in_loop() {
+    let code = r#"
+function findOver(limit) {
+    let i = 0;
+    while (i < 100) {
+        if (i > limit) {
+            return i;
+        }
+        i++;
+    }
+    return 0;
+}
+print findOver(5);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "6");
+}
+
+#[test]
+fn test_recursive_function() {
+    let code = r#"
+function factorial(n) {
+    if (n < 2) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+print factorial(5);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "120");
+}
+
+#[test]
+fn test_recursive_fibonacci() {
+    let code = r#"
+function fib(n) {
+    if (n < 2) {
+        return n;
+    }
+    return fib(n - 1) + fib(n - 2);
+}
+print fib(10);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "55");
+}
+
+#[test]
+fn test_function_call_as_statement() {
+    let code = r#"
+let x = 0;
+function doStuff() {
+    print "called";
+    return 0;
+}
+doStuff();
+print "done";
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "called\ndone");
+}
