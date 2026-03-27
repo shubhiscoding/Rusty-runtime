@@ -252,10 +252,13 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
             Instruction::PopTop => {
                 runtime.pop_or_panic_stack();
             },
-            Instruction::CallFunction(name, _arg_count) => {
+            Instruction::CallFunction(name, arg_count) => {
                 let func = runtime.functions.get(&name).expect("undefined function");
                 let mut locals = HashMap::new();
                 // Pop args in reverse (last arg was pushed last)
+                if arg_count != func.params.len() {
+                    panic!("Expected {} arguments but got {}", func.params.len(), arg_count);
+                }
                 for param in func.params.iter().rev() {
                     locals.insert(param.clone(), runtime.stack.pop().unwrap());
                 }
