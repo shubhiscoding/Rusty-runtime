@@ -1,4 +1,12 @@
+use std::collections::HashMap;
+
 use crate::ast::{BinaryOperation, Expression, Statement, Value};
+
+#[derive(Debug)]
+pub struct FunctionBytecode {
+    pub params: Vec<String>,
+    pub instructions: Vec<Instruction>
+}
 
 pub struct LoopContext {
     start: usize,
@@ -6,8 +14,13 @@ pub struct LoopContext {
     continue_placeholders: Vec<usize>,
 }
 
-
 #[derive(Debug)]
+pub struct Program {
+    pub main: Vec<Instruction>,
+    pub functions: HashMap<String, FunctionBytecode>
+}
+
+#[derive(Debug, Clone)]
 pub enum Instruction {
     LoadConst(Value),
     DeclareVar(String),
@@ -27,7 +40,9 @@ pub enum Instruction {
     Jump(usize),
     JumpIfTrue(usize),
     DuplicateTop,
-    PopTop
+    PopTop,
+    Return,
+    CallFunction(String, usize)
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -75,6 +90,12 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                 BinaryOperation::Subtraction => instructions.push(Instruction::Negate),
                 _ => {}
             }
+        },
+        Expression::Call { name, args } => {
+            for arg in args {
+                compile_expr(instructions, arg);
+            }
+            instructions.push(Instruction::CallFunction(name.clone(), args.len()));
         }
     }
 }
@@ -186,7 +207,40 @@ pub fn compile_statements(
                 } else {
                     panic!("'continue' used outside of a loop");
                 }
+            },
+            Statement::Function { name:_, params:_, body:_ }  => {},
+            Statement::Return { value } => {
+                compile_expr(instructions, &value);
+                instructions.push(Instruction::Return);
+            },
+            Statement::Expression(expr) => {
+                match expr {
+                    Expression::Call { name, args } => {
+                        for arg in &args {
+                            compile_expr(instructions, arg);
+                        }
+                        instructions.push(Instruction::CallFunction(name.clone(), args.len()));
+                    },
+                    _ => compile_expr(instructions, &expr)
+                }
             }
         }
     }
+}
+
+pub fn compile_program(statements: Vec<Statement>) -> Program {
+    let mut main_instructions = Vec::new();
+    let mut functions = HashMap::new();
+
+    for statement in statements {
+        if let Statement::Function { name, params, body } = statement {
+            let mut func_instructions = Vec::new();
+            compile_statements(body, &mut func_instructions, None);
+            functions.insert(name, FunctionBytecode { params, instructions: func_instructions });
+        } else {
+            compile_statements(vec![statement], &mut main_instructions, None);
+        }
+    }
+
+    Program { main: main_instructions, functions }
 }

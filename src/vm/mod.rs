@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt};
 
-use crate::{ast::{BinaryOperation, Value}, compiler::Instruction};
+use crate::{ast::{BinaryOperation, Value}, compiler::{FunctionBytecode, Instruction, Program}};
 
 
 impl fmt::Display for Value {
@@ -12,19 +12,27 @@ impl fmt::Display for Value {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct Frame {
+    variables: HashMap<String, Value>,
+    instructions: Vec<Instruction>,
+    ip: usize,
+}
+
 pub struct Runtime {
     stack: Vec<Value>,
-    variables: HashMap<String, Value>,
+    frames: Vec<Frame>,
+    functions: HashMap<String, FunctionBytecode>,
 }
 
 impl Runtime {
 
     pub fn new() -> Self {
-        Self { stack: Vec::new(), variables: HashMap::<String, Value>::new() }
+        Self { stack: Vec::new(), frames: Vec::new(), functions: HashMap::new() }
     }
 
     fn load_variable(&mut self, var: &str) {
-        if let Some(value) = self.variables.get(var) {
+        if let Some(value) = self.frames.iter().rev().find_map(|frame| frame.variables.get(var)) {
             self.stack.push((*value).clone());
         } else {
             panic!("{} is not defined", var);
@@ -33,16 +41,16 @@ impl Runtime {
 
     fn store_variable(&mut self, var: String) {
         if let Some(value) = self.stack.pop(){
-            self.variables.insert(var, value);
+            self.frames.last_mut().unwrap().variables.insert(var, value);
         } else {
             panic!("No defined value to store in {}", var);
         }
     }
 
     fn assign_variable(&mut self, var: String) {
-        if self.variables.contains_key(&var) {
-            if let Some(value) = self.stack.pop(){
-                self.variables.insert(var, value);
+        if let Some(value) = self.frames.iter_mut().rev().find_map(|frame| frame.variables.get_mut(&var)) {
+            if let Some(val) = self.stack.pop(){
+                *value = val;
             } else {
                 panic!("No defined value to store in {}", var);
             }
@@ -148,13 +156,25 @@ impl Runtime {
     }
 }
 
-pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
-    let mut i = 0; // Initialize index to 0
-    while i < instructions.len() {
-        let instruction = &instructions[i];
+
+pub fn execute(program: Program, runtime: &mut Runtime) {
+    runtime.functions = program.functions;
+    runtime.frames.push(Frame {
+        variables: HashMap::new(),
+        instructions: program.main,
+        ip: 0,
+    });
+    
+    while let Some(frame) = runtime.frames.last() {
+        if frame.ip >= frame.instructions.len() {
+            runtime.frames.pop();  // function ended without explicit return
+            continue;
+        }
+        
+        let instruction = frame.instructions[frame.ip].clone();
         match instruction {
             Instruction::LoadConst(val) => {
-                runtime.load_const((*val).clone());
+                runtime.load_const((val).clone());
             },
             Instruction::DeclareVar(val)  => {
                 runtime.store_variable(val.to_string());
@@ -163,7 +183,7 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
                 runtime.assign_variable(val.to_string());
             },
             Instruction::LoadVar(val) => {
-                runtime.load_variable(val);
+                runtime.load_variable(&val);
             },
             Instruction::Print => {
                 runtime.print();
@@ -205,12 +225,12 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
                 if matches!(condition, Value::Number(0)) ||
                    matches!(condition, Value::String(s) if s.is_empty())
                 {
-                    i = *idx;
+                    runtime.frames.last_mut().unwrap().ip = idx;
                     continue;
                 }
             },
             Instruction::Jump(idx) => {
-                i = *idx;
+                runtime.frames.last_mut().unwrap().ip = idx;
                 continue;
             },
             Instruction::JumpIfTrue(idx) => {
@@ -218,7 +238,7 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
                 if matches!(condition, Value::Number(n) if n != 0) ||
                    matches!(condition, Value::String(s) if !s.is_empty())
                 {
-                    i = *idx;
+                    runtime.frames.last_mut().unwrap().ip = idx;
                     continue;
                 }  
             },
@@ -231,8 +251,31 @@ pub fn execute(instructions: Vec<Instruction>, runtime: &mut Runtime) {
             },
             Instruction::PopTop => {
                 runtime.pop_or_panic_stack();
+            },
+            Instruction::CallFunction(name, _arg_count) => {
+                let func = runtime.functions.get(&name).expect("undefined function");
+                let mut locals = HashMap::new();
+                // Pop args in reverse (last arg was pushed last)
+                for param in func.params.iter().rev() {
+                    locals.insert(param.clone(), runtime.stack.pop().unwrap());
+                }
+                // Save caller's position (move past the CallFunction instruction)
+                runtime.frames.last_mut().unwrap().ip += 1;
+                // Push new frame
+                runtime.frames.push(Frame {
+                    instructions: func.instructions.clone(),
+                    ip: 0,
+                    variables: locals,
+                });
+                continue; // don't increment ip again
+            },
+            Instruction::Return => {
+               let return_value = runtime.stack.pop().unwrap();
+                runtime.frames.pop();
+                runtime.stack.push(return_value);
+                continue;
             }
         }
-        i += 1;
+        runtime.frames.last_mut().unwrap().ip += 1; // Move to next instruction
     }
 }

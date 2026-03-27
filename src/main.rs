@@ -8,7 +8,7 @@ mod compiler;
 mod vm;
 use lexer::tokenize;
 use parser::Parser;
-use compiler::compile_statements;
+use compiler::compile_program;
 use vm::execute;
 use vm::Runtime;
 
@@ -16,9 +16,8 @@ fn repl_execution(runtime: &mut Runtime, input: &str) {
         let tokens = tokenize(&input);
         let mut parser = Parser::new(tokens);
         let ast = parser.parse();
-        let mut instructions = Vec::new();
-        compile_statements(ast, &mut instructions, None);
-        execute(instructions, runtime);
+        let program = compile_program(ast);
+        execute(program, runtime);
 }
 
 fn repl(){
@@ -61,10 +60,9 @@ fn main() {
         let tokens = tokenize(&source);
         let mut parser = Parser::new(tokens);
         let ast = parser.parse();
-        let mut instructions = Vec::new();
-        compile_statements(ast, &mut instructions, None);
+        let program = compile_program(ast);
         let mut runtime = vm::Runtime::new();
-        execute(instructions, &mut runtime);
+        execute(program, &mut runtime);
     } else {
         println!("Unknown command: {}", command);
         println!("Usage: {} run <source_file>", run_args[0]);

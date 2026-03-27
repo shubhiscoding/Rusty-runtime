@@ -27,7 +27,10 @@ pub enum Token {
     Or,
     Increment,
     Decrement,
-    For
+    For,
+    Function,
+    Comma,
+    Return
 }
 
 
@@ -108,6 +111,11 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 } else {
                     panic!("Unexpected character: {}", ch);
                 }
+            }
+
+            ',' => {
+                tokens.push(Token::Comma);
+                chars.next();
             }
 
             '-' => {
@@ -222,6 +230,8 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                     "for" => tokens.push(Token::For),
                     "break" => tokens.push(Token::Break),
                     "continue" => tokens.push(Token::Continue),
+                    "function" => tokens.push(Token::Function),
+                    "return" => tokens.push(Token::Return),
                     _ => tokens.push(Token::Identifier(ident)),
                 }
             }

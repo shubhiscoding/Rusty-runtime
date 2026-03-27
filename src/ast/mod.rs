@@ -1,5 +1,6 @@
 #[derive(Debug)]
 pub enum Statement {
+    Expression(Expression),
     VarDecl {
         name: String,
         value: Expression,
@@ -27,7 +28,15 @@ pub enum Statement {
         value: Expression,
     },
     Break,
-    Continue
+    Continue,
+    Function {
+        name: String,
+        params: Vec<String>,
+        body: Vec<Statement>
+    },
+    Return {
+        value: Expression
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -57,6 +66,10 @@ pub enum Expression {
     Unary {
         op: BinaryOperation,
         expr: Box<Expression>
+    },
+    Call {
+        name: String,
+        args: Vec<Expression>
     }
 }
 

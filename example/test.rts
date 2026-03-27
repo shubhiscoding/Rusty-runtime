@@ -49,3 +49,11 @@ ch=ch+10;
 if(ch){
     print ch+" works";
 }
+
+print "value: "+x;
+print "value: "+m;
+function add(a, b){
+    return a+b;
+}
+
+print add(add(x,10), m);

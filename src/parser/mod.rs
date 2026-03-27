@@ -59,7 +59,7 @@ impl Parser {
                     self.parse_print()
                 }
                 else {
-                    self.parse_assignment(name.clone())
+                    self.parse_call(name.clone())
                 }
             }
             Some(Token::If) => self.parse_if(),
@@ -79,8 +79,71 @@ impl Parser {
                 }
                 Statement::Continue
             },
+            Some(Token::Return) => {
+                self.advance();
+                let value = self.parse_first();
+                if self.advance() != Some(&Token::Semicolon) {
+                    panic!("Expected ';' after return value");
+                }
+                Statement::Return { value }
+            },
+            Some(Token::Function) => self.parse_function(),
             _ => panic!("Unexpected token: {:?}", self.peek()),
         }
+    }
+
+    fn parse_function(&mut self) -> Statement {
+        self.advance(); // consume 'function'
+
+        let name = match self.advance() {
+            Some(Token::Identifier(name)) => name.clone(),
+            _ => panic!("Expected identifier"),
+        };
+
+        match self.advance() {
+            Some(Token::LeftParentheses) => {}
+            _ => panic!("Expected '(' after function name"),
+        }
+
+        let mut params = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::RightParentheses {
+                break;
+            }
+            match token {
+                Token::Identifier(param) => {
+                    params.push(param.clone());
+                    self.advance();
+                },
+                Token::Comma => { self.advance(); },
+                _ => panic!("Expected parameter name or ','"),
+            }
+        }
+
+        match self.advance() {
+            Some(Token::RightParentheses) => {}
+            _ => panic!("Expected ')' after parameters"),
+        }
+
+        match self.advance() {
+            Some(Token::LeftBrace) => {}
+            _ => panic!("Expected '{{'"),
+        }
+
+        let mut body = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::RightBrace {
+                break;
+            }
+            body.push(self.parse_statement());
+        }
+
+        match self.advance() {
+            Some(Token::RightBrace) => {}
+            _ => panic!("Expected '}}' after function body"),
+        }
+
+        Statement::Function { name, params, body }
     }
 
     fn parse_update(&mut self) -> Statement {
@@ -111,7 +174,6 @@ impl Parser {
      }
 
     fn parse_assignment(&mut self, name: String) -> Statement {
-        self.advance(); // consume identifier
         match self.advance() {
             Some(Token::Equals) => {}
             Some(Token::Increment) => {
@@ -296,6 +358,45 @@ impl Parser {
         self.parse_primary()
     }
 
+    fn parse_call(&mut self, name: String) -> Statement {
+        self.advance(); // consume the identifier
+        if let Some(Token::LeftParentheses) = self.peek() {
+            // It's a function call statement: foo(args);
+            let call_expr = self.parse_call_args(name);
+            match self.advance() {
+                Some(Token::Semicolon) => {}
+                _ => panic!("Expected ';' after function call"),
+            }
+            Statement::Expression(call_expr)
+        } else {
+            self.parse_assignment(name)
+        }
+    }
+
+    fn parse_call_args(&mut self, name: String) -> Expression {
+        self.advance(); // consume '('
+
+        let mut args = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::RightParentheses {
+                break;
+            }
+            args.push(self.parse_first());
+            if let Some(Token::Comma) = self.peek() {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        match self.advance() {
+            Some(Token::RightParentheses) => {}
+            _ => panic!("Expected ')' after function arguments"),
+        }
+
+        Expression::Call { name, args }
+    }
+
     fn parse_primary(&mut self) -> Expression {
         match self.advance() {
             Some(Token::LeftParentheses) => {
@@ -307,7 +408,15 @@ impl Parser {
                 expr
             }
             Some(Token::Number(n)) => Expression::Number(*n),
-            Some(Token::Identifier(name)) => Expression::Identifier(name.clone()),
+            Some(Token::Identifier(name)) => {
+                let name = name.clone();
+                // If followed by '(', it's a function call expression
+                if let Some(Token::LeftParentheses) = self.peek() {
+                    self.parse_call_args(name)
+                } else {
+                    Expression::Identifier(name)
+                }
+            }
             Some(Token::String(s)) => Expression::String(s.clone()),
             _ => panic!("Invalid expression"),
         }
