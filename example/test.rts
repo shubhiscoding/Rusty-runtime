@@ -1,59 +1,29 @@
-let x = (2 + (3 * (4 + 2))) / 2;
-x++;
-if(x>10){
-    print "I was here x is greater then 10";
-}else{
-    print "I'm here x is small";
-}
+let x = (2 + 3) * 4;
+print "x = " + x;
 
-print "999">"998";
-
-while (x > 5) {
-    if (x == 8) {
-        x = x - 1;
-        continue;
+function max(a, b) {
+    if (a > b) {
+        return a;
     } else {
-        if (x > 0 && 10 > 8) {
-            print x;
-        }
+        return b;
     }
-    x--;
 }
 
-for (let i = 0; i < x; i++) {
-    if (i == 1) {
-        continue;
-    }
-    if (i == 2) {
-        break;
-    }
+print "max is " + max(x, 15);
+
+function factorial(n) {
+    if (n < 2) { return 1; }
+    return n * factorial(n - 1);
+}
+print "5! = " + factorial(5);
+
+for (let i = 0; i < 5; i++) {
+    if (i == 2) { continue; }
+    if (i == 4) { break; }
     print i;
 }
 
-let m = 100;
-let n = "nope"+x;
-
-print n;
-
-if(n){
-    print "Works";
+let name = "Rusty";
+if (name && x > 10) {
+    print name + " works!";
 }
-
-let ch ="";
-if(ch){
-    print ch+" broken";
-}
-
-ch=ch+10;
-
-if(ch){
-    print ch+" works";
-}
-
-print "value: "+x;
-print "value: "+m;
-function add(a, b){
-    return a+b;
-}
-
-print add(add(x,10), m);

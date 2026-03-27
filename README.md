@@ -36,18 +36,22 @@ RTS → Bytecode → Lightweight VM
 
 ## ⚙️ Current Architecture
 
-Rusty currently uses a **bytecode interpreter**:
+Rusty currently uses a **bytecode interpreter** with a frame-based VM:
 
 ```
-Source Code → Lexer → Parser → AST → Compiler → Bytecode → VM
+Source Code → Lexer → Parser → AST → Compiler → Program → VM
+                                                   ↓
+                                          main bytecode + function table
+                                                   ↓
+                                          Frame-based execution (call stack)
 ```
 
-| Stage    | What it does                                     |
-| -------- | ------------------------------------------------ |
-| Lexer    | Tokenizes raw source into tokens                 |
-| Parser   | Builds an AST with proper precedence             |
-| Compiler | Emits stack-based bytecode                       |
-| VM       | Executes bytecode using a stack + variable store |
+| Stage    | What it does                                          |
+| -------- | ----------------------------------------------------- |
+| Lexer    | Tokenizes raw source into tokens                      |
+| Parser   | Builds an AST with proper precedence                  |
+| Compiler | Emits stack-based bytecode, separates functions        |
+| VM       | Executes bytecode using a value stack + call frames    |
 
 ---
 
@@ -73,8 +77,8 @@ The WASM backend will:
 ## ✨ Features
 
 * 🧠 Custom lexer, parser, and AST
-* ⚡ Bytecode compiler
-* 🧮 Stack-based virtual machine
+* ⚡ Bytecode compiler with separate function compilation
+* 🧮 Frame-based stack virtual machine
 * ➕ Arithmetic with precedence and parentheses
 * 📝 String literals and concatenation (`"hello" + " world"`)
 * ➖ Unary operators (`-x`, `-(2 + 3)`)
@@ -83,6 +87,8 @@ The WASM backend will:
 * 🔁 Control flow (`if` / `else`) with backpatching
 * 🔄 Loops (`while`, `for`) with `break` / `continue`
 * 🔢 Increment / decrement (`i++`, `i--`)
+* 🔧 Functions with parameters, return values, and recursion
+* 🧩 Nested function calls (`add(add(1,2), 3)`)
 * 🖨️ Print statements (`print x;`)
 * 🔁 REPL (interactive shell)
 * 📂 File execution (`rusty run file.rts`)
@@ -92,60 +98,47 @@ The WASM backend will:
 ## 🧪 Example
 
 ```ts
-let x = (2 + (3 * (4 + 2))) / 2;
-x++;
+let x = (2 + 3) * 4;
+print "x = " + x;
 
-if (x > 10) {
-    print "x is greater than 10";
-} else {
-    print "x is small";
-}
-
-print "10" + "10";
-
-while (x > 5) {
-    if (x == 8) {
-        x = x - 1;
-        continue;
+function max(a, b) {
+    if (a > b) {
+        return a;
     } else {
-        if (x > 0 && 10 > 8) {
-            print x;
-        }
+        return b;
     }
-    x--;
 }
 
-for (let i = 0; i < x; i++) {
-    if (i == 1) {
-        continue;
-    }
-    if (i == 2) {
-        break;
-    }
+print "max is " + max(x, 15);
+
+function factorial(n) {
+    if (n < 2) { return 1; }
+    return n * factorial(n - 1);
+}
+print "5! = " + factorial(5);
+
+for (let i = 0; i < 5; i++) {
+    if (i == 2) { continue; }
+    if (i == 4) { break; }
     print i;
 }
 
-let n = "nope" + x;
-print n;
-
-if (n) {
-    print "Works";
+let name = "Rusty";
+if (name && x > 10) {
+    print name + " works!";
 }
 ```
 
 Output:
 
 ```
-x is greater than 10
-1010
-11
-10
-9
-7
-6
+x = 20
+max is 20
+5! = 120
 0
-nope5
-Works
+1
+3
+Rusty works!
 ```
 
 ---
@@ -214,9 +207,12 @@ cargo run -- repl
 * [x] `for` loops
 * [x] Logical operators (`&&`, `||`) with short-circuiting
 * [x] Increment / decrement (`++`, `--`)
-* [ ] Functions
+* [x] Functions (declaration, params, return)
+* [x] Nested / recursive function calls
+* [x] Frame-based call stack
 * [ ] Type annotations
 * [ ] Arrays and objects
+* [ ] Closures
 
 ---
 
