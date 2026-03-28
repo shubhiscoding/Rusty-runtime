@@ -1,0 +1,55 @@
+let arr = [38, 27, 43, 3, 9, 82, 10];
+let n = 7;
+
+function merge(arr, left, mid, right) {
+    let i = left;
+    let j = mid + 1;
+    let temp = [0, 0, 0, 0, 0, 0, 0];
+    let k = 0;
+
+    while(i < mid + 1 && j < right + 1) {
+        if(arr[i] < arr[j] + 1) {
+            temp[k] = arr[i];
+            i++;
+        } else {
+            temp[k] = arr[j];
+            j++;
+        }
+        k++;
+    }
+
+    while(i < mid + 1) {
+        temp[k] = arr[i];
+        i++;
+        k++;
+    }
+
+    while(j < right + 1) {
+        temp[k] = arr[j];
+        j++;
+        k++;
+    }
+
+    let t = 0;
+    let p = left;
+    while(p < right + 1) {
+        arr[p] = temp[t];
+        p++;
+        t++;
+    }
+
+    return arr;
+}
+
+function mergeSort(arr, left, right) {
+    if(left < right) {
+        let mid = (left + right) / 2;
+        arr = mergeSort(arr, left, mid);
+        arr = mergeSort(arr, mid + 1, right);
+        arr = merge(arr, left, mid, right);
+    }
+    return arr;
+}
+
+arr = mergeSort(arr, 0, n - 1);
+print arr;

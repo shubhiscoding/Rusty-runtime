@@ -8,6 +8,10 @@ impl fmt::Display for Value {
         match self {
             Value::Number(n) => write!(f, "{}", n),
             Value::String(s) => write!(f, "{}", s),
+            Value::Array(arr) => {
+                let elements = arr.iter().map(|v| format!("{}", v)).collect::<Vec<String>>().join(", ");
+                write!(f, "[{}]", elements)
+            }
         }
     }
 }
@@ -277,6 +281,45 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
                 runtime.frames.pop();
                 runtime.stack.push(return_value);
                 continue;
+            },
+            Instruction::CreateArray(len) => {
+                let mut elements = Vec::new();
+                for _ in 0..len {
+                    if let Some(value) = runtime.stack.pop() {
+                        elements.push(value);
+                    } else {
+                        panic!("Not enough values on stack to create array");
+                    }
+                }
+                elements.reverse();
+                runtime.stack.push(Value::Array(elements));
+            },
+            Instruction::LoadIndex => {
+                let index = runtime.pop_or_panic_stack();
+                let array = runtime.pop_or_panic_stack();
+                if let (Value::Array(arr), Value::Number(idx)) = (array, index) {
+                    if idx < 0 || (idx as usize) >= arr.len() {
+                        panic!("Array index out of bounds");
+                    }
+                    runtime.stack.push(arr[idx as usize].clone());
+                } else {
+                    panic!("LoadIndex requires an array and a number index");
+                }
+            },
+            Instruction::StoreIndex => {
+                let value = runtime.pop_or_panic_stack();
+                let index = runtime.pop_or_panic_stack();
+                let array = runtime.pop_or_panic_stack();
+                
+                if let (Value::Array(mut arr), Value::Number(idx)) = (array, index) {
+                    if idx < 0 || (idx as usize) >= arr.len() {
+                        panic!("Array index out of bounds");
+                    }
+                    arr[idx as usize] = value;
+                    runtime.stack.push(Value::Array(arr));
+                } else {
+                    panic!("StoreIndex requires an array and a number index");
+                }
             }
         }
         runtime.frames.last_mut().unwrap().ip += 1; // Move to next instruction

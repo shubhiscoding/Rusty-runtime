@@ -60,7 +60,9 @@ fn main() {
         let tokens = tokenize(&source);
         let mut parser = Parser::new(tokens);
         let ast = parser.parse();
+        // println!("Parsed AST: {:#?}", ast);
         let program = compile_program(ast);
+        // println!("Compiled program: {:#?}", program);
         let mut runtime = vm::Runtime::new();
         execute(program, &mut runtime);
     } else {

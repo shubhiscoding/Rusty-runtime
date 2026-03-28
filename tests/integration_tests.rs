@@ -804,3 +804,163 @@ print "done";
     let out = run_rts(code);
     assert_eq!(out, "called\ndone");
 }
+
+// ========== Arrays ==========
+
+#[test]
+fn test_array_literal_print() {
+    let out = run_rts("let arr = [1, 2, 3];\nprint arr;");
+    assert_eq!(out, "[1, 2, 3]");
+}
+
+#[test]
+fn test_array_empty() {
+    let out = run_rts("let arr = [];\nprint arr;");
+    assert_eq!(out, "[]");
+}
+
+#[test]
+fn test_array_index_read() {
+    let out = run_rts("let arr = [10, 20, 30];\nprint arr[0];\nprint arr[1];\nprint arr[2];");
+    assert_eq!(out, "10\n20\n30");
+}
+
+#[test]
+fn test_array_index_write() {
+    let out = run_rts("let arr = [1, 2, 3];\narr[1] = 99;\nprint arr;");
+    assert_eq!(out, "[1, 99, 3]");
+}
+
+#[test]
+fn test_array_index_write_persists() {
+    let out = run_rts("let arr = [1, 2, 3];\narr[0] = 10;\narr[2] = 30;\nprint arr[0];\nprint arr[2];");
+    assert_eq!(out, "10\n30");
+}
+
+#[test]
+fn test_array_index_with_expression() {
+    let code = r#"
+let arr = [10, 20, 30, 40];
+let i = 1;
+print arr[i + 1];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "30");
+}
+
+#[test]
+fn test_array_index_write_with_expression() {
+    let code = r#"
+let arr = [0, 0, 0];
+let i = 1;
+arr[i] = 42;
+print arr;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[0, 42, 0]");
+}
+
+#[test]
+fn test_array_reassignment() {
+    let code = r#"
+let arr = [1, 2, 3];
+arr = [4, 5, 6];
+print arr;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[4, 5, 6]");
+}
+
+#[test]
+fn test_array_in_loop() {
+    let code = r#"
+let arr = [10, 20, 30];
+for (let i = 0; i < 3; i++) {
+    print arr[i];
+}
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "10\n20\n30");
+}
+
+#[test]
+fn test_array_modify_in_loop() {
+    let code = r#"
+let arr = [1, 2, 3];
+for (let i = 0; i < 3; i++) {
+    arr[i] = arr[i] * 10;
+}
+print arr;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[10, 20, 30]");
+}
+
+#[test]
+fn test_array_with_strings() {
+    let out = run_rts(r#"let arr = ["a", "b", "c"];
+print arr[1];"#);
+    assert_eq!(out, "b");
+}
+
+#[test]
+fn test_array_passed_to_function() {
+    let code = r#"
+function first(arr) {
+    return arr[0];
+}
+let a = [42, 99];
+print first(a);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "42");
+}
+
+#[test]
+fn test_array_returned_from_function() {
+    let code = r#"
+function swap(arr) {
+    let temp = arr[0];
+    arr[0] = arr[1];
+    arr[1] = temp;
+    return arr;
+}
+let a = [1, 2];
+a = swap(a);
+print a;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[2, 1]");
+}
+
+#[test]
+fn test_array_index_out_of_bounds_fails() {
+    let stderr = run_rts_should_fail("let arr = [1, 2];\nprint arr[5];");
+    assert!(stderr.contains("out of bounds"));
+}
+
+#[test]
+fn test_array_negative_index_fails() {
+    let stderr = run_rts_should_fail("let arr = [1, 2];\nprint arr[-1];");
+    assert!(stderr.contains("out of bounds"));
+}
+
+#[test]
+fn test_array_bubble_sort() {
+    let code = r#"
+let arr = [3, 1, 2];
+let n = 3;
+for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n - 1; j++) {
+        if (arr[j] > arr[j + 1]) {
+            let temp = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = temp;
+        }
+    }
+}
+print arr;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[1, 2, 3]");
+}

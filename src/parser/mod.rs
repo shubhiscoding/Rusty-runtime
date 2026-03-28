@@ -368,6 +368,32 @@ impl Parser {
                 _ => panic!("Expected ';' after function call"),
             }
             Statement::Expression(call_expr)
+        } else if let Some(Token::SquareLeft) = self.peek() {
+            let index = self.parse_index(name);
+            match self.advance() {
+                Some(Token::Equals) => {
+                    // It's an array assignment: arr[index] = value;
+                    let value = self.parse_first();
+                    match self.advance() {
+                        Some(Token::Semicolon) => {}
+                        _ => panic!("Expected ';' after array assignment"),
+                    }
+                    match index {
+                        Expression::Index { array, index } => {
+                            Statement::AssignmentIndex {
+                                array: match *array {
+                                    Expression::Identifier(name) => name,
+                                    _ => panic!("Expected identifier for array name in assignment"),
+                                },
+                                index: *index,
+                                value,
+                            }
+                        },
+                        _ => panic!("Expected array indexing expression for array assignment"),
+                    }
+                },
+                _ => Statement::Expression(index), // Just an array access expression
+            }
         } else {
             self.parse_assignment(name)
         }
@@ -413,14 +439,55 @@ impl Parser {
                 // If followed by '(', it's a function call expression
                 if let Some(Token::LeftParentheses) = self.peek() {
                     self.parse_call_args(name)
-                } else {
+                } else if let Some(Token::SquareLeft) = self.peek() {
+                    self.parse_index(name)
+                } 
+                else {
                     Expression::Identifier(name)
                 }
-            }
+            },
+            Some(Token::SquareLeft) => self.parse_array_literal(),
             Some(Token::String(s)) => Expression::String(s.clone()),
             _ => panic!("Invalid expression"),
         }
     }
+
+    fn parse_index(&mut self, array_name: String) -> Expression {
+        if let Some(Token::SquareLeft) = self.peek() {
+            self.advance(); // consume '['
+            let index_expr = self.parse_first();
+            match self.advance() {
+                Some(Token::SquareRight) => {}
+                _ => panic!("Expected ']' after array index"),
+            }
+            Expression::Index {
+                array: Box::new(Expression::Identifier(array_name)),
+                index: Box::new(index_expr),
+            }
+        } else {
+            panic!("Expected '[' after identifier for array indexing");
+        }
+    }
+    
+    fn parse_array_literal(&mut self) -> Expression {
+        let mut elements = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::SquareRight {
+                break;
+            }
+            elements.push(self.parse_first());
+            if let Some(Token::Comma) = self.peek() {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+        match self.advance() {
+            Some(Token::SquareRight) => {}
+            _ => panic!("Expected ']' after array literal"),
+        }
+        Expression::ArrayLiteral(elements)
+     }
 
     fn parse_if(&mut self) -> Statement {
         self.advance(); // consume 'if'
