@@ -30,7 +30,9 @@ pub enum Token {
     For,
     Function,
     Comma,
-    Return
+    Return,
+    SquareLeft,
+    SquareRight
 }
 
 
@@ -159,6 +161,16 @@ pub fn tokenize(input: &str) -> Vec<Token> {
 
             '{' => {
                 tokens.push(Token::LeftBrace);
+                chars.next();
+            }
+
+            '[' => {
+                tokens.push(Token::SquareLeft);
+                chars.next();
+            }
+
+            ']' => {
+                tokens.push(Token::SquareRight);
                 chars.next();
             }
 

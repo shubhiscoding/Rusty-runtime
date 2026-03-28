@@ -36,6 +36,11 @@ pub enum Statement {
     },
     Return {
         value: Expression
+    },
+    AssignmentIndex {
+        array: String,
+        index: Expression,
+        value: Expression,
     }
 }
 
@@ -70,6 +75,11 @@ pub enum Expression {
     Call {
         name: String,
         args: Vec<Expression>
+    },
+    ArrayLiteral(Vec<Expression>),
+    Index {
+        array: Box<Expression>,
+        index: Box<Expression>,
     }
 }
 
@@ -77,4 +87,5 @@ pub enum Expression {
 pub enum Value {
     Number(i32),
     String(String),
+    Array(Vec<Value>),
 }

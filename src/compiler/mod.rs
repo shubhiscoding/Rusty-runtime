@@ -42,7 +42,10 @@ pub enum Instruction {
     DuplicateTop,
     PopTop,
     Return,
-    CallFunction(String, usize)
+    CallFunction(String, usize),
+    CreateArray(usize),
+    LoadIndex,
+    StoreIndex
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -96,6 +99,17 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                 compile_expr(instructions, arg);
             }
             instructions.push(Instruction::CallFunction(name.clone(), args.len()));
+        },
+        Expression::ArrayLiteral(elements) => {
+            for element in elements {
+                compile_expr(instructions, element);
+            }
+            instructions.push(Instruction::CreateArray(elements.len()));
+        },
+        Expression::Index { array, index } => {
+            compile_expr(instructions, array);
+            compile_expr(instructions, index);
+            instructions.push(Instruction::LoadIndex);
         }
     }
 }
@@ -223,6 +237,18 @@ pub fn compile_statements(
                     },
                     _ => compile_expr(instructions, &expr)
                 }
+            },
+            Statement::AssignmentIndex { array, index, value } => {
+                instructions.push(Instruction::LoadVar(array.clone()));
+
+                // index is expression
+                compile_expr(instructions, &index);
+
+                // value is expression
+                compile_expr(instructions, &value);
+
+                instructions.push(Instruction::StoreIndex);
+                instructions.push(Instruction::AssignVar(array));
             }
         }
     }
