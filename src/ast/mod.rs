@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 #[derive(Debug)]
 pub enum Statement {
     Expression(Expression),
@@ -87,5 +89,5 @@ pub enum Expression {
 pub enum Value {
     Number(i32),
     String(String),
-    Array(Vec<Value>),
+    Array(Rc<RefCell<Vec<Value>>>),
 }

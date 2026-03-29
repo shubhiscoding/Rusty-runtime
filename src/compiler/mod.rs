@@ -268,7 +268,6 @@ pub fn compile_statements(
                 compile_expr(instructions, &value);
 
                 instructions.push(Instruction::StoreIndex);
-                instructions.push(Instruction::AssignVar(array));
             }
         }
     }
