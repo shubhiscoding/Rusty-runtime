@@ -14,7 +14,7 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.87"
+          toolchain: "1.91"
           components: rustfmt, clippy
       - name: Build
         run: cargo build --verbose
