@@ -1,5 +1,5 @@
-use crate::lexer::Token;
 use crate::ast::{BinaryOperation, Expression, Statement};
+use crate::lexer::Token;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -12,7 +12,7 @@ fn is_arithmetic_operator(tkn: &Token) -> Option<BinaryOperation> {
         Token::Subtraction => Some(BinaryOperation::Subtraction),
         Token::Multiplication => Some(BinaryOperation::Multiplication),
         Token::Division => Some(BinaryOperation::Division),
-        _ => None
+        _ => None,
     }
 }
 
@@ -22,7 +22,7 @@ fn is_compare_operator(tkn: &Token) -> Option<BinaryOperation> {
         Token::Less => Some(BinaryOperation::Less),
         Token::EqualEqual => Some(BinaryOperation::Equal),
         Token::NotEqual => Some(BinaryOperation::NotEqual),
-        _ => None
+        _ => None,
     }
 }
 
@@ -55,10 +55,9 @@ impl Parser {
         match self.peek() {
             Some(Token::Let) => self.parse_var_decl(),
             Some(Token::Identifier(name)) => {
-                if name == "print"{ 
+                if name == "print" {
                     self.parse_print()
-                }
-                else {
+                } else {
                     self.parse_call(name.clone())
                 }
             }
@@ -71,14 +70,14 @@ impl Parser {
                     panic!("Expected ';' after 'break'");
                 }
                 Statement::Break
-            },
+            }
             Some(Token::Continue) => {
                 self.advance();
                 if self.advance() != Some(&Token::Semicolon) {
                     panic!("Expected ';' after 'continue'");
                 }
                 Statement::Continue
-            },
+            }
             Some(Token::Return) => {
                 self.advance();
                 let value = self.parse_first();
@@ -86,7 +85,7 @@ impl Parser {
                     panic!("Expected ';' after return value");
                 }
                 Statement::Return { value }
-            },
+            }
             Some(Token::Function) => self.parse_function(),
             _ => panic!("Unexpected token: {:?}", self.peek()),
         }
@@ -114,8 +113,10 @@ impl Parser {
                 Token::Identifier(param) => {
                     params.push(param.clone());
                     self.advance();
-                },
-                Token::Comma => { self.advance(); },
+                }
+                Token::Comma => {
+                    self.advance();
+                }
                 _ => panic!("Expected parameter name or ','"),
             }
         }
@@ -171,7 +172,7 @@ impl Parser {
             },
             _ => panic!("Expected '++' or '--' in for update"),
         }
-     }
+    }
 
     fn parse_assignment(&mut self, name: String) -> Statement {
         match self.advance() {
@@ -186,8 +187,8 @@ impl Parser {
                     Some(Token::Semicolon) => {}
                     _ => panic!("Expected ';'"),
                 }
-                return Statement::Assignment { name, value }
-            },
+                return Statement::Assignment { name, value };
+            }
             Some(Token::Decrement) => {
                 let value = Expression::Binary {
                     left: Box::new(Expression::Identifier(name.clone())),
@@ -198,8 +199,8 @@ impl Parser {
                     Some(Token::Semicolon) => {}
                     _ => panic!("Expected ';'"),
                 }
-                return Statement::Assignment { name, value }
-            },
+                return Statement::Assignment { name, value };
+            }
             _ => panic!("Expected '='"),
         }
 
@@ -211,7 +212,7 @@ impl Parser {
         }
 
         Statement::Assignment { name, value }
-     }
+    }
 
     fn parse_var_decl(&mut self) -> Statement {
         self.advance(); // consume 'let'
@@ -283,7 +284,7 @@ impl Parser {
         let mut left = self.parse_expression();
 
         while let Some(token) = self.peek() {
-            if let Some(opr) = is_compare_operator(token){
+            if let Some(opr) = is_compare_operator(token) {
                 self.advance();
                 let right = self.parse_expression();
                 left = Expression::Binary {
@@ -302,7 +303,7 @@ impl Parser {
         let mut left = self.parse_term();
 
         while let Some(token) = self.peek() {
-            if let Some(opr) = is_arithmetic_operator(token){
+            if let Some(opr) = is_arithmetic_operator(token) {
                 if opr != BinaryOperation::Addition && opr != BinaryOperation::Subtraction {
                     break;
                 }
@@ -324,7 +325,7 @@ impl Parser {
         let mut left = self.parse_unary();
 
         while let Some(token) = self.peek() {
-            if let Some(opr) = is_arithmetic_operator(token){
+            if let Some(opr) = is_arithmetic_operator(token) {
                 if opr != BinaryOperation::Multiplication && opr != BinaryOperation::Division {
                     break;
                 }
@@ -343,17 +344,16 @@ impl Parser {
     }
 
     fn parse_unary(&mut self) -> Expression {
-        if let Some(token) = self.peek() {
-            if let Some(opr) = is_arithmetic_operator(token){
-                if opr == BinaryOperation::Subtraction {
-                    self.advance();
-                    let expr = self.parse_unary();
-                    return Expression::Unary {
-                        op: opr,
-                        expr: Box::new(expr)
-                    }
-                }
-            }
+        if let Some(token) = self.peek()
+            && let Some(opr) = is_arithmetic_operator(token)
+            && opr == BinaryOperation::Subtraction
+        {
+            self.advance();
+            let expr = self.parse_unary();
+            return Expression::Unary {
+                op: opr,
+                expr: Box::new(expr),
+            };
         }
         self.parse_primary()
     }
@@ -379,19 +379,17 @@ impl Parser {
                         _ => panic!("Expected ';' after array assignment"),
                     }
                     match index {
-                        Expression::Index { array, index } => {
-                            Statement::AssignmentIndex {
-                                array: match *array {
-                                    Expression::Identifier(name) => name,
-                                    _ => panic!("Expected identifier for array name in assignment"),
-                                },
-                                index: *index,
-                                value,
-                            }
+                        Expression::Index { array, index } => Statement::AssignmentIndex {
+                            array: match *array {
+                                Expression::Identifier(name) => name,
+                                _ => panic!("Expected identifier for array name in assignment"),
+                            },
+                            index: *index,
+                            value,
                         },
                         _ => panic!("Expected array indexing expression for array assignment"),
                     }
-                },
+                }
                 _ => Statement::Expression(index), // Just an array access expression
             }
         } else {
@@ -441,11 +439,10 @@ impl Parser {
                     self.parse_call_args(name)
                 } else if let Some(Token::SquareLeft) = self.peek() {
                     self.parse_index(name)
-                } 
-                else {
+                } else {
                     Expression::Identifier(name)
                 }
-            },
+            }
             Some(Token::SquareLeft) => self.parse_array_literal(),
             Some(Token::String(s)) => Expression::String(s.clone()),
             _ => panic!("Invalid expression"),
@@ -468,7 +465,7 @@ impl Parser {
             panic!("Expected '[' after identifier for array indexing");
         }
     }
-    
+
     fn parse_array_literal(&mut self) -> Expression {
         let mut elements = Vec::new();
         while let Some(token) = self.peek() {
@@ -487,7 +484,7 @@ impl Parser {
             _ => panic!("Expected ']' after array literal"),
         }
         Expression::ArrayLiteral(elements)
-     }
+    }
 
     fn parse_if(&mut self) -> Statement {
         self.advance(); // consume 'if'
@@ -526,7 +523,8 @@ impl Parser {
         if let Some(Token::Else) = self.peek() {
             self.advance();
             match self.advance() {
-                Some(Token::LeftBrace) => {}_ => panic!("Expected '{{' after 'else'"),
+                Some(Token::LeftBrace) => {}
+                _ => panic!("Expected '{{' after 'else'"),
             }
 
             while let Some(token) = self.peek() {
@@ -540,10 +538,18 @@ impl Parser {
                 Some(Token::RightBrace) => {}
                 _ => panic!("Expected '}}' after else block"),
             }
-            return Statement::If { condition, body, else_body: Some(else_body)};
+            return Statement::If {
+                condition,
+                body,
+                else_body: Some(else_body),
+            };
         }
 
-        Statement::If { condition, body, else_body: None }
+        Statement::If {
+            condition,
+            body,
+            else_body: None,
+        }
     }
 
     fn parse_while(&mut self) -> Statement {
@@ -580,7 +586,7 @@ impl Parser {
         }
 
         Statement::While { condition, body }
-     }
+    }
 
     fn parse_for(&mut self) -> Statement {
         self.advance(); // consume 'for'
@@ -624,7 +630,12 @@ impl Parser {
             _ => panic!("Expected '}}' after for block"),
         }
 
-        Statement::For { init: Box::new(init), condition, update: Box::new(update), body }
+        Statement::For {
+            init: Box::new(init),
+            condition,
+            update: Box::new(update),
+            body,
+        }
     }
 
     fn parse_first(&mut self) -> Expression {

@@ -32,9 +32,8 @@ pub enum Token {
     Comma,
     Return,
     SquareLeft,
-    SquareRight
+    SquareRight,
 }
-
 
 pub fn tokenize(input: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
@@ -192,7 +191,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 }
 
                 tokens.push(Token::Number(num.parse().unwrap()));
-            },
+            }
 
             '&' => {
                 chars.next();
@@ -206,7 +205,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 } else {
                     panic!("Unexpected character: {}", ch);
                 }
-            },
+            }
 
             '|' => {
                 chars.next();
@@ -220,7 +219,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 } else {
                     panic!("Unexpected character: {}", ch);
                 }
-            },
+            }
 
             'a'..='z' | 'A'..='Z' => {
                 let mut ident = String::new();

@@ -1,35 +1,39 @@
-use std::env::{args};
+use std::env::args;
 use std::panic;
 
-mod lexer;
-mod parser;
 mod ast;
 mod compiler;
+mod lexer;
+mod parser;
 mod vm;
+use compiler::compile_program;
 use lexer::tokenize;
 use parser::Parser;
-use compiler::compile_program;
-use vm::execute;
 use vm::Runtime;
+use vm::execute;
 
 fn repl_execution(runtime: &mut Runtime, input: &str) {
-        let tokens = tokenize(&input);
-        let mut parser = Parser::new(tokens);
-        let ast = parser.parse();
-        let program = compile_program(ast);
-        execute(program, runtime);
+    let tokens = tokenize(input);
+    let mut parser = Parser::new(tokens);
+    let ast = parser.parse();
+    let program = compile_program(ast);
+    execute(program, runtime);
 }
 
-fn repl(){
+fn repl() {
     use std::io::{self, Write};
     let mut runtime = Runtime::new();
     loop {
         print!("> ");
         io::stdout().flush().unwrap();
         let mut input = String::new();
-        io::stdin().read_line(&mut input).expect("Failed to read line");
-        let res = panic::catch_unwind(panic::AssertUnwindSafe(|| repl_execution(&mut runtime, &input)));
-        if let Err(_) = res {
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
+        let res = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            repl_execution(&mut runtime, &input)
+        }));
+        if res.is_err() {
             eprintln!("Error occurred while executing input");
         }
     }

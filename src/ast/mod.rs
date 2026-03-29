@@ -15,13 +15,13 @@ pub enum Statement {
     },
     While {
         condition: Expression,
-        body: Vec<Statement>
+        body: Vec<Statement>,
     },
     For {
         init: Box<Statement>,
         condition: Expression,
         update: Box<Statement>,
-        body: Vec<Statement>
+        body: Vec<Statement>,
     },
     Assignment {
         name: String,
@@ -32,16 +32,16 @@ pub enum Statement {
     Function {
         name: String,
         params: Vec<String>,
-        body: Vec<Statement>
+        body: Vec<Statement>,
     },
     Return {
-        value: Expression
+        value: Expression,
     },
     AssignmentIndex {
         array: String,
         index: Expression,
         value: Expression,
-    }
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -55,7 +55,7 @@ pub enum BinaryOperation {
     Equal,
     NotEqual,
     And,
-    Or
+    Or,
 }
 
 #[derive(Debug, Clone)]
@@ -70,17 +70,17 @@ pub enum Expression {
     },
     Unary {
         op: BinaryOperation,
-        expr: Box<Expression>
+        expr: Box<Expression>,
     },
     Call {
         name: String,
-        args: Vec<Expression>
+        args: Vec<Expression>,
     },
     ArrayLiteral(Vec<Expression>),
     Index {
         array: Box<Expression>,
         index: Box<Expression>,
-    }
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

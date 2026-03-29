@@ -41,7 +41,10 @@ fn run_rts_should_fail(code: &str) -> String {
 
     let _ = std::fs::remove_file(&file_path);
 
-    assert!(!output.status.success(), "Expected program to fail but it succeeded");
+    assert!(
+        !output.status.success(),
+        "Expected program to fail but it succeeded"
+    );
     String::from_utf8_lossy(&output.stderr).to_string()
 }
 
@@ -427,16 +430,20 @@ fn test_number_concat_with_string() {
 
 #[test]
 fn test_string_variable() {
-    let out = run_rts(r#"let x = "hello";
-print x;"#);
+    let out = run_rts(
+        r#"let x = "hello";
+print x;"#,
+    );
     assert_eq!(out, "hello");
 }
 
 #[test]
 fn test_string_variable_concat() {
-    let out = run_rts(r#"let a = "foo";
+    let out = run_rts(
+        r#"let a = "foo";
 let b = "bar";
-print a + b;"#);
+print a + b;"#,
+    );
     assert_eq!(out, "foobar");
 }
 
@@ -474,9 +481,11 @@ fn test_string_number_equality_false() {
 
 #[test]
 fn test_string_concat_in_variable() {
-    let out = run_rts(r#"let x = 5;
+    let out = run_rts(
+        r#"let x = 5;
 let n = "nope" + x;
-print n;"#);
+print n;"#,
+    );
     assert_eq!(out, "nope5");
 }
 
@@ -833,7 +842,8 @@ fn test_array_index_write() {
 
 #[test]
 fn test_array_index_write_persists() {
-    let out = run_rts("let arr = [1, 2, 3];\narr[0] = 10;\narr[2] = 30;\nprint arr[0];\nprint arr[2];");
+    let out =
+        run_rts("let arr = [1, 2, 3];\narr[0] = 10;\narr[2] = 30;\nprint arr[0];\nprint arr[2];");
     assert_eq!(out, "10\n30");
 }
 
@@ -898,8 +908,10 @@ print arr;
 
 #[test]
 fn test_array_with_strings() {
-    let out = run_rts(r#"let arr = ["a", "b", "c"];
-print arr[1];"#);
+    let out = run_rts(
+        r#"let arr = ["a", "b", "c"];
+print arr[1];"#,
+    );
     assert_eq!(out, "b");
 }
 
