@@ -1019,3 +1019,93 @@ fn test_nested_array_print_whole() {
     let out = run_rts("let arr = [[1, 2], [3, 4]];\nprint arr;");
     assert_eq!(out, "[[1, 2], [3, 4]]");
 }
+
+// ========== Nested Array Assignment ==========
+
+#[test]
+fn test_nested_array_write_depth_2() {
+    let code = r#"
+let x = [[1, 2], [3, 4]];
+x[0][1] = 99;
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[[1, 99], [3, 4]]");
+}
+
+#[test]
+fn test_nested_array_write_depth_3() {
+    let code = r#"
+let x = [10, [3, [6, 11]], 5];
+x[1][1][0] = 99;
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[10, [3, [99, 11]], 5]");
+}
+
+#[test]
+fn test_nested_array_write_preserves_siblings() {
+    let code = r#"
+let x = [[1, 2], [3, 4]];
+x[1][0] = 99;
+print x[0];
+print x[1];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[1, 2]\n[99, 4]");
+}
+
+#[test]
+fn test_nested_array_write_then_read() {
+    let code = r#"
+let x = [[10, 20], [30, 40]];
+x[0][0] = 5;
+print x[0][0];
+print x[0][1];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5\n20");
+}
+
+#[test]
+fn test_nested_array_write_with_expression_index() {
+    let code = r#"
+let x = [[1, 2], [3, 4]];
+let i = 1;
+x[i][i - 1] = 50;
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[[1, 2], [50, 4]]");
+}
+
+#[test]
+fn test_nested_array_write_in_loop() {
+    let code = r#"
+let x = [[0, 0], [0, 0]];
+for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+        x[i][j] = i * 2 + j;
+    }
+}
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[[0, 1], [2, 3]]");
+}
+
+#[test]
+fn test_nested_array_write_via_function() {
+    let code = r#"
+function setCell(grid, r, c, val) {
+    grid[r][c] = val;
+    return 0;
+}
+let g = [[1, 2], [3, 4]];
+setCell(g, 0, 1, 99);
+print g;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "[[1, 99], [3, 4]]");
+}

@@ -262,13 +262,14 @@ pub fn compile_statements(
                 instructions.push(Instruction::LoadVar(array.clone()));
 
                 // index is expression
-                compile_expr(instructions, &index);
-
+                for idx in &index {
+                    compile_expr(instructions, idx);
+                    instructions.push(Instruction::LoadIndex);
+                }
+                instructions.pop();
                 // value is expression
                 compile_expr(instructions, &value);
-
                 instructions.push(Instruction::StoreIndex);
-                instructions.push(Instruction::AssignVar(array));
             }
         }
     }
