@@ -976,3 +976,46 @@ print arr;
     let out = run_rts(code);
     assert_eq!(out, "[1, 2, 3]");
 }
+
+// ========== Nested Arrays ==========
+
+#[test]
+fn test_nested_array_literal() {
+    let out = run_rts("let arr = [1, [2, 3]];\nprint arr[1];");
+    assert_eq!(out, "[2, 3]");
+}
+
+#[test]
+fn test_nested_array_index_depth_2() {
+    let out = run_rts("let arr = [[10, 20], [30, 40]];\nprint arr[1][0];");
+    assert_eq!(out, "30");
+}
+
+#[test]
+fn test_nested_array_index_depth_3() {
+    let out = run_rts("let x = [10, [3, [6, 11]], 5];\nprint x[1][1][0];");
+    assert_eq!(out, "6");
+}
+
+#[test]
+fn test_nested_array_index_first_element() {
+    let out = run_rts("let arr = [[1, 2], [3, 4]];\nprint arr[0][0];");
+    assert_eq!(out, "1");
+}
+
+#[test]
+fn test_nested_array_index_with_expression() {
+    let code = r#"
+let arr = [[10, 20], [30, 40]];
+let i = 1;
+print arr[i][i - 1];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "30");
+}
+
+#[test]
+fn test_nested_array_print_whole() {
+    let out = run_rts("let arr = [[1, 2], [3, 4]];\nprint arr;");
+    assert_eq!(out, "[[1, 2], [3, 4]]");
+}
