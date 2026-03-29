@@ -450,7 +450,7 @@ impl Parser {
     }
 
     fn parse_index(&mut self, array_name: String) -> Expression {
-        let mut result =  Expression::Identifier(array_name.clone());
+        let mut result = Expression::Identifier(array_name.clone());
         while Some(&Token::SquareLeft) == self.peek() {
             self.advance(); // consume '['
             let index_expr = self.parse_first();
