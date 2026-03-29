@@ -369,28 +369,28 @@ impl Parser {
             }
             Statement::Expression(call_expr)
         } else if let Some(Token::SquareLeft) = self.peek() {
-            let index = self.parse_index(name);
-            match self.advance() {
-                Some(Token::Equals) => {
-                    // It's an array assignment: arr[index] = value;
-                    let value = self.parse_first();
-                    match self.advance() {
-                        Some(Token::Semicolon) => {}
-                        _ => panic!("Expected ';' after array assignment"),
-                    }
-                    match index {
-                        Expression::Index { array, index } => Statement::AssignmentIndex {
-                            array: match *array {
-                                Expression::Identifier(name) => name,
-                                _ => panic!("Expected identifier for array name in assignment"),
-                            },
-                            index: *index,
-                            value,
-                        },
-                        _ => panic!("Expected array indexing expression for array assignment"),
-                    }
+            let mut indices = Vec::new();
+            while Some(&Token::SquareLeft) == self.peek() {
+                self.advance();
+                indices.push(self.parse_first());
+                match self.advance() {
+                    Some(Token::SquareRight) => {}
+                    _ => panic!("Expected ']' after array index"),
                 }
-                _ => Statement::Expression(index), // Just an array access expression
+            }
+            match self.advance() {
+                Some(Token::Equals) => {}
+                _ => panic!("Expected '=' after array index"),
+            }
+            let value = self.parse_first();
+            match self.advance() {
+                Some(Token::Semicolon) => {}
+                _ => panic!("Expected ';' after array assignment"),
+            }
+            Statement::AssignmentIndex {
+                array: name,
+                index: indices,
+                value,
             }
         } else {
             self.parse_assignment(name)

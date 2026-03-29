@@ -41,7 +41,7 @@ pub enum Statement {
     },
     AssignmentIndex {
         array: String,
-        index: Expression,
+        index: Vec<Expression>,
         value: Expression,
     },
 }
