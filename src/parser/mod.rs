@@ -450,20 +450,20 @@ impl Parser {
     }
 
     fn parse_index(&mut self, array_name: String) -> Expression {
-        if let Some(Token::SquareLeft) = self.peek() {
+        let mut result =  Expression::Identifier(array_name.clone());
+        while Some(&Token::SquareLeft) == self.peek() {
             self.advance(); // consume '['
             let index_expr = self.parse_first();
             match self.advance() {
                 Some(Token::SquareRight) => {}
                 _ => panic!("Expected ']' after array index"),
             }
-            Expression::Index {
-                array: Box::new(Expression::Identifier(array_name)),
+            result = Expression::Index {
+                array: Box::new(result),
                 index: Box::new(index_expr),
-            }
-        } else {
-            panic!("Expected '[' after identifier for array indexing");
+            };
         }
+        result
     }
 
     fn parse_array_literal(&mut self) -> Expression {
