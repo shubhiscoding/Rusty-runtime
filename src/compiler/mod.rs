@@ -5,7 +5,7 @@ use crate::ast::{BinaryOperation, Expression, Statement, Value};
 #[derive(Debug)]
 pub struct FunctionBytecode {
     pub params: Vec<String>,
-    pub instructions: Vec<Instruction>
+    pub instructions: Vec<Instruction>,
 }
 
 pub struct LoopContext {
@@ -17,7 +17,7 @@ pub struct LoopContext {
 #[derive(Debug)]
 pub struct Program {
     pub main: Vec<Instruction>,
-    pub functions: HashMap<String, FunctionBytecode>
+    pub functions: HashMap<String, FunctionBytecode>,
 }
 
 #[derive(Debug, Clone)]
@@ -45,13 +45,15 @@ pub enum Instruction {
     CallFunction(String, usize),
     CreateArray(usize),
     LoadIndex,
-    StoreIndex
+    StoreIndex,
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
     match expr {
         Expression::Number(x) => instructions.push(Instruction::LoadConst(Value::Number(*x))),
-        Expression::String(s) => instructions.push(Instruction::LoadConst(Value::String(s.clone()))),
+        Expression::String(s) => {
+            instructions.push(Instruction::LoadConst(Value::String(s.clone())))
+        }
         Expression::Identifier(val) => instructions.push(Instruction::LoadVar(val.to_string())),
         Expression::Binary { left, op, right } => {
             if *op != BinaryOperation::And && *op != BinaryOperation::Or {
@@ -75,7 +77,8 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                     let jump_instructions_index = instructions.len() - 1;
                     instructions.push(Instruction::PopTop);
                     compile_expr(instructions, right);
-                    instructions[jump_instructions_index] = Instruction::JumpIfFalse(instructions.len());
+                    instructions[jump_instructions_index] =
+                        Instruction::JumpIfFalse(instructions.len());
                 }
                 BinaryOperation::Or => {
                     instructions.push(Instruction::DuplicateTop);
@@ -83,29 +86,29 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                     let jump_instructions_index = instructions.len() - 1;
                     instructions.push(Instruction::PopTop);
                     compile_expr(instructions, right);
-                    instructions[jump_instructions_index] = Instruction::JumpIfTrue(instructions.len());
+                    instructions[jump_instructions_index] =
+                        Instruction::JumpIfTrue(instructions.len());
                 }
             }
         }
         Expression::Unary { op, expr } => {
             compile_expr(instructions, expr);
-            match op {
-                BinaryOperation::Subtraction => instructions.push(Instruction::Negate),
-                _ => {}
+            if op == &BinaryOperation::Subtraction {
+                instructions.push(Instruction::Negate);
             }
-        },
+        }
         Expression::Call { name, args } => {
             for arg in args {
                 compile_expr(instructions, arg);
             }
             instructions.push(Instruction::CallFunction(name.clone(), args.len()));
-        },
+        }
         Expression::ArrayLiteral(elements) => {
             for element in elements {
                 compile_expr(instructions, element);
             }
             instructions.push(Instruction::CreateArray(elements.len()));
-        },
+        }
         Expression::Index { array, index } => {
             compile_expr(instructions, array);
             compile_expr(instructions, index);
@@ -124,12 +127,16 @@ pub fn compile_statements(
             Statement::VarDecl { name, value } => {
                 compile_expr(instructions, &value);
                 instructions.push(Instruction::DeclareVar(name));
-            },
+            }
             Statement::Print { value } => {
                 compile_expr(instructions, &value);
                 instructions.push(Instruction::Print);
             }
-            Statement::If { condition, body, else_body } => {
+            Statement::If {
+                condition,
+                body,
+                else_body,
+            } => {
                 compile_expr(instructions, &condition);
 
                 let jump_if_false_index = instructions.len();
@@ -140,11 +147,13 @@ pub fn compile_statements(
                 if let Some(else_body) = else_body {
                     let jump_to_end_index = instructions.len();
                     instructions.push(Instruction::Jump(0));
-                    instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
+                    instructions[jump_if_false_index] =
+                        Instruction::JumpIfFalse(instructions.len());
                     compile_statements(else_body, instructions, loop_ctx.as_deref_mut());
                     instructions[jump_to_end_index] = Instruction::Jump(instructions.len());
                 } else {
-                    instructions[jump_if_false_index] = Instruction::JumpIfFalse(instructions.len());
+                    instructions[jump_if_false_index] =
+                        Instruction::JumpIfFalse(instructions.len());
                 }
             }
             Statement::While { condition, body } => {
@@ -171,8 +180,13 @@ pub fn compile_statements(
                 for idx in ctx.break_placeholders {
                     instructions[idx] = Instruction::Jump(instructions.len());
                 }
-            },
-            Statement::For { init, condition, update, body } => {
+            }
+            Statement::For {
+                init,
+                condition,
+                update,
+                body,
+            } => {
                 compile_statements(vec![*init], instructions, loop_ctx.as_deref_mut());
 
                 let loop_start_index = instructions.len();
@@ -201,11 +215,11 @@ pub fn compile_statements(
                 for idx in ctx.break_placeholders {
                     instructions[idx] = Instruction::Jump(instructions.len());
                 }
-            },
+            }
             Statement::Assignment { name, value } => {
                 compile_expr(instructions, &value);
                 instructions.push(Instruction::AssignVar(name));
-            },
+            }
             Statement::Break => {
                 if let Some(ctx) = loop_ctx.as_deref_mut() {
                     instructions.push(Instruction::Jump(0));
@@ -213,7 +227,7 @@ pub fn compile_statements(
                 } else {
                     panic!("'break' used outside of a loop");
                 }
-            },
+            }
             Statement::Continue => {
                 if let Some(ctx) = loop_ctx.as_deref_mut() {
                     instructions.push(Instruction::Jump(0));
@@ -221,24 +235,30 @@ pub fn compile_statements(
                 } else {
                     panic!("'continue' used outside of a loop");
                 }
-            },
-            Statement::Function { name:_, params:_, body:_ }  => {},
+            }
+            Statement::Function {
+                name: _,
+                params: _,
+                body: _,
+            } => {}
             Statement::Return { value } => {
                 compile_expr(instructions, &value);
                 instructions.push(Instruction::Return);
-            },
-            Statement::Expression(expr) => {
-                match expr {
-                    Expression::Call { name, args } => {
-                        for arg in &args {
-                            compile_expr(instructions, arg);
-                        }
-                        instructions.push(Instruction::CallFunction(name.clone(), args.len()));
-                    },
-                    _ => compile_expr(instructions, &expr)
+            }
+            Statement::Expression(expr) => match expr {
+                Expression::Call { name, args } => {
+                    for arg in &args {
+                        compile_expr(instructions, arg);
+                    }
+                    instructions.push(Instruction::CallFunction(name.clone(), args.len()));
                 }
+                _ => compile_expr(instructions, &expr),
             },
-            Statement::AssignmentIndex { array, index, value } => {
+            Statement::AssignmentIndex {
+                array,
+                index,
+                value,
+            } => {
                 instructions.push(Instruction::LoadVar(array.clone()));
 
                 // index is expression
@@ -262,11 +282,20 @@ pub fn compile_program(statements: Vec<Statement>) -> Program {
         if let Statement::Function { name, params, body } = statement {
             let mut func_instructions = Vec::new();
             compile_statements(body, &mut func_instructions, None);
-            functions.insert(name, FunctionBytecode { params, instructions: func_instructions });
+            functions.insert(
+                name,
+                FunctionBytecode {
+                    params,
+                    instructions: func_instructions,
+                },
+            );
         } else {
             compile_statements(vec![statement], &mut main_instructions, None);
         }
     }
 
-    Program { main: main_instructions, functions }
+    Program {
+        main: main_instructions,
+        functions,
+    }
 }

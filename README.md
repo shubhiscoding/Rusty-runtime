@@ -89,56 +89,25 @@ The WASM backend will:
 * 🔢 Increment / decrement (`i++`, `i--`)
 * 🔧 Functions with parameters, return values, and recursion
 * 🧩 Nested function calls (`add(add(1,2), 3)`)
+* 📦 Arrays (literals, index read/write, pass to functions)
 * 🖨️ Print statements (`print x;`)
 * 🔁 REPL (interactive shell)
 * 📂 File execution (`rusty run file.rts`)
+* ✅ CI pipeline (GitHub Actions)
 
 ---
 
-## 🧪 Example
+## 🧪 Examples
 
-```ts
-let x = (2 + 3) * 4;
-print "x = " + x;
+Check out the [`example/`](example/) folder for sample RTS programs, including:
 
-function max(a, b) {
-    if (a > b) {
-        return a;
-    } else {
-        return b;
-    }
-}
+- [`test.rts`](example/test.rts) — array basics (literals, indexing, mutation)
+- [`merge_sort.rts`](example/merge_sort.rts) — merge sort implementation using arrays, functions, and recursion
 
-print "max is " + max(x, 15);
+Run any example with:
 
-function factorial(n) {
-    if (n < 2) { return 1; }
-    return n * factorial(n - 1);
-}
-print "5! = " + factorial(5);
-
-for (let i = 0; i < 5; i++) {
-    if (i == 2) { continue; }
-    if (i == 4) { break; }
-    print i;
-}
-
-let name = "Rusty";
-if (name && x > 10) {
-    print name + " works!";
-}
-```
-
-Output:
-
-```
-x = 20
-max is 20
-5! = 120
-0
-1
-3
-Rusty works!
+```bash
+cargo run -- run example/merge_sort.rts
 ```
 
 ---
@@ -210,15 +179,19 @@ cargo run -- repl
 * [x] Functions (declaration, params, return)
 * [x] Nested / recursive function calls
 * [x] Frame-based call stack
+* [x] Arrays (literals, indexing, mutation)
+* [x] Array pass/return from functions
 * [ ] Type annotations
-* [ ] Arrays and objects
+* [ ] Objects / maps
 * [ ] Closures
+* [ ] `<=`, `>=` operators
 
 ---
 
-### Runtime Evolution
+### Runtime & Tooling
 
 * [x] Bytecode VM
+* [x] CI pipeline (build, test, clippy, fmt)
 * [ ] WASM backend (in progress)
 * [ ] Bytecode optimizations
 * [ ] Register-based VM (optional)
