@@ -46,6 +46,9 @@ pub enum Instruction {
     CreateArray(usize),
     LoadIndex,
     StoreIndex,
+    CreateObject(usize),
+    LoadProperty,
+    StoreProperty,
 }
 
 fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
@@ -113,6 +116,19 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
             compile_expr(instructions, array);
             compile_expr(instructions, index);
             instructions.push(Instruction::LoadIndex);
+        }
+        Expression::ObjectLiteral(objs) => {
+            for obj in objs {
+                let (key, value) = obj;
+                instructions.push(Instruction::LoadConst(Value::String(key.to_owned())));
+                compile_expr(instructions, value);
+            }
+            instructions.push(Instruction::CreateObject(objs.len()));
+        }
+        Expression::PropertyAccess { object, property } => {
+            compile_expr(instructions, object);
+            instructions.push(Instruction::LoadConst(Value::String(property.to_owned())));
+            instructions.push(Instruction::LoadProperty);
         }
     }
 }
@@ -270,6 +286,20 @@ pub fn compile_statements(
                 // value is expression
                 compile_expr(instructions, &value);
                 instructions.push(Instruction::StoreIndex);
+            }
+            Statement::AssignmentProperty {
+                object,
+                property,
+                value,
+            } => {
+                instructions.push(Instruction::LoadVar(object));
+                for prop in property {
+                    instructions.push(Instruction::LoadConst(Value::String(prop.to_owned())));
+                    instructions.push(Instruction::LoadProperty);
+                }
+                instructions.pop();
+                compile_expr(instructions, &value);
+                instructions.push(Instruction::StoreProperty);
             }
         }
     }

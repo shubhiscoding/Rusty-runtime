@@ -358,6 +358,63 @@ impl Parser {
         self.parse_primary()
     }
 
+    fn parse_array_assignment(&mut self, name: String) -> Statement {
+        let mut indices = Vec::new();
+        while Some(&Token::SquareLeft) == self.peek() {
+            self.advance();
+            indices.push(self.parse_first());
+            match self.advance() {
+                Some(Token::SquareRight) => {}
+                _ => panic!("Expected ']' after array index"),
+            }
+        }
+        match self.advance() {
+            Some(Token::Equals) => {}
+            _ => panic!("Expected '=' after array index"),
+        }
+        let value = self.parse_first();
+        match self.advance() {
+            Some(Token::Semicolon) => {}
+            _ => panic!("Expected ';' after array assignment"),
+        }
+        Statement::AssignmentIndex {
+            array: name,
+            index: indices,
+            value,
+        }
+    }
+
+    fn parse_obj_assignment(&mut self, name: String) -> Statement {
+        let mut properties = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token != Token::Dot {
+                break;
+            }
+            self.advance();
+            let prop_name = match self.advance() {
+                Some(Token::Identifier(name)) => name.to_owned(),
+                _ => panic!("Expected identifier"),
+            };
+            properties.push(prop_name);
+        }
+
+        match self.advance() {
+            Some(Token::Equals) => {}
+            _ => panic!("Expected '=' after object property"),
+        }
+        let value = self.parse_first();
+        match self.advance() {
+            Some(Token::Semicolon) => {}
+            _ => panic!("Expected ';' after object assignment"),
+        }
+
+        Statement::AssignmentProperty {
+            object: name,
+            property: properties,
+            value,
+        }
+    }
+
     fn parse_call(&mut self, name: String) -> Statement {
         self.advance(); // consume the identifier
         if let Some(Token::LeftParentheses) = self.peek() {
@@ -369,29 +426,9 @@ impl Parser {
             }
             Statement::Expression(call_expr)
         } else if let Some(Token::SquareLeft) = self.peek() {
-            let mut indices = Vec::new();
-            while Some(&Token::SquareLeft) == self.peek() {
-                self.advance();
-                indices.push(self.parse_first());
-                match self.advance() {
-                    Some(Token::SquareRight) => {}
-                    _ => panic!("Expected ']' after array index"),
-                }
-            }
-            match self.advance() {
-                Some(Token::Equals) => {}
-                _ => panic!("Expected '=' after array index"),
-            }
-            let value = self.parse_first();
-            match self.advance() {
-                Some(Token::Semicolon) => {}
-                _ => panic!("Expected ';' after array assignment"),
-            }
-            Statement::AssignmentIndex {
-                array: name,
-                index: indices,
-                value,
-            }
+            self.parse_array_assignment(name)
+        } else if let Some(Token::Dot) = self.peek() {
+            self.parse_obj_assignment(name)
         } else {
             self.parse_assignment(name)
         }
@@ -421,6 +458,60 @@ impl Parser {
         Expression::Call { name, args }
     }
 
+    fn parse_object(&mut self) -> Expression {
+        let mut properties = Vec::new();
+        while let Some(token) = self.peek() {
+            if *token == Token::RightBrace {
+                break;
+            }
+            let key = match self.advance() {
+                Some(Token::Identifier(name)) => name.to_owned(),
+                _ => panic!("Expected identifier"),
+            };
+            match self.advance() {
+                Some(Token::Colon) => {}
+                _ => panic!("Expected ':'"),
+            }
+            let value = self.parse_first();
+            properties.push((key, value));
+            if let Some(Token::Comma) = self.peek() {
+                self.advance();
+            }
+        }
+
+        match self.advance() {
+            Some(Token::RightBrace) => {}
+            _ => panic!("Expected '}}'"),
+        }
+
+        Expression::ObjectLiteral(properties)
+    }
+
+    fn parse_index_access(&mut self, array: Expression) -> Expression {
+        self.advance(); // consume '['
+        let index_expr = self.parse_first();
+        match self.advance() {
+            Some(Token::SquareRight) => {}
+            _ => panic!("Expected ']' after array index"),
+        }
+        Expression::Index {
+            array: Box::new(array),
+            index: Box::new(index_expr),
+        }
+    }
+
+    fn parse_property_access(&mut self, object: Expression) -> Expression {
+        self.advance(); // consume '.'
+        let prop_name = match self.advance() {
+            Some(Token::Identifier(name)) => name.to_owned(),
+            _ => panic!("Expected identifier after '.'"),
+        };
+        Expression::PropertyAccess {
+            object: Box::new(object),
+            property: prop_name,
+        }
+    }
+
     fn parse_primary(&mut self) -> Expression {
         match self.advance() {
             Some(Token::LeftParentheses) => {
@@ -433,37 +524,32 @@ impl Parser {
             }
             Some(Token::Number(n)) => Expression::Number(*n),
             Some(Token::Identifier(name)) => {
-                let name = name.clone();
-                // If followed by '(', it's a function call expression
-                if let Some(Token::LeftParentheses) = self.peek() {
-                    self.parse_call_args(name)
-                } else if let Some(Token::SquareLeft) = self.peek() {
-                    self.parse_index(name)
-                } else {
-                    Expression::Identifier(name)
+                let mut expr = Expression::Identifier(name.clone());
+                loop {
+                    match self.peek() {
+                        Some(Token::LeftParentheses) => {
+                            let name = match expr {
+                                Expression::Identifier(ref n) => n.clone(),
+                                _ => panic!("Expected function name before '('"),
+                            };
+                            expr = self.parse_call_args(name);
+                        }
+                        Some(Token::SquareLeft) => {
+                            expr = self.parse_index_access(expr);
+                        }
+                        Some(Token::Dot) => {
+                            expr = self.parse_property_access(expr);
+                        }
+                        _ => break,
+                    }
                 }
+                expr
             }
             Some(Token::SquareLeft) => self.parse_array_literal(),
+            Some(Token::LeftBrace) => self.parse_object(),
             Some(Token::String(s)) => Expression::String(s.clone()),
             _ => panic!("Invalid expression"),
         }
-    }
-
-    fn parse_index(&mut self, array_name: String) -> Expression {
-        let mut result = Expression::Identifier(array_name.clone());
-        while Some(&Token::SquareLeft) == self.peek() {
-            self.advance(); // consume '['
-            let index_expr = self.parse_first();
-            match self.advance() {
-                Some(Token::SquareRight) => {}
-                _ => panic!("Expected ']' after array index"),
-            }
-            result = Expression::Index {
-                array: Box::new(result),
-                index: Box::new(index_expr),
-            };
-        }
-        result
     }
 
     fn parse_array_literal(&mut self) -> Expression {

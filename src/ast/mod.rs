@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
@@ -44,6 +45,11 @@ pub enum Statement {
         index: Vec<Expression>,
         value: Expression,
     },
+    AssignmentProperty {
+        object: String,
+        property: Vec<String>,
+        value: Expression,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -83,11 +89,27 @@ pub enum Expression {
         array: Box<Expression>,
         index: Box<Expression>,
     },
+    ObjectLiteral(Vec<(String, Expression)>),
+    PropertyAccess {
+        object: Box<Expression>,
+        property: String,
+    },
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Number(i32),
     String(String),
     Array(Rc<RefCell<Vec<Value>>>),
+    Object(Rc<RefCell<HashMap<String, Value>>>),
+}
+
+impl PartialOrd for Value {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (self, other) {
+            (Value::Number(a), Value::Number(b)) => a.partial_cmp(b),
+            (Value::String(a), Value::String(b)) => a.partial_cmp(b),
+            _ => None,
+        }
+    }
 }
