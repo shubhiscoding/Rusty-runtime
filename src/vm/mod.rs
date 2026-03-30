@@ -331,30 +331,44 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
             }
             Instruction::LoadIndex => {
                 let index = runtime.pop_or_panic_stack();
-                let array = runtime.pop_or_panic_stack();
-                if let (Value::Array(arr), Value::Number(idx)) = (array, index) {
-                    let vec = arr.borrow();
-                    if idx < 0 || (idx as usize) >= vec.len() {
-                        panic!("Array index out of bounds");
-                    } // immutable borrow
-                    runtime.stack.push(vec[idx as usize].clone());
-                } else {
-                    panic!("LoadIndex requires an array and a number index");
+                let target = runtime.pop_or_panic_stack();
+                match (&target, &index) {
+                    (Value::Array(arr), Value::Number(idx)) => {
+                        let vec = arr.borrow();
+                        if *idx < 0 || (*idx as usize) >= vec.len() {
+                            panic!("Array index out of bounds");
+                        }
+                        runtime.stack.push(vec[*idx as usize].clone());
+                    }
+                    (Value::Object(obj), Value::String(key)) => {
+                        let map = obj.borrow();
+                        if let Some(value) = map.get(key) {
+                            runtime.stack.push(value.clone());
+                        } else {
+                            panic!("Property '{}' not found", key);
+                        }
+                    }
+                    _ => panic!("Index access requires an array with number index or object with string key"),
                 }
             }
             Instruction::StoreIndex => {
                 let value = runtime.pop_or_panic_stack();
                 let index = runtime.pop_or_panic_stack();
-                let array = runtime.pop_or_panic_stack();
+                let target = runtime.pop_or_panic_stack();
 
-                if let (Value::Array(arr), Value::Number(idx)) = (&array, index) {
-                    let mut vec = arr.borrow_mut();
-                    if idx < 0 || (idx as usize) >= vec.len() {
-                        panic!("Array index out of bounds");
+                match (&target, &index) {
+                    (Value::Array(arr), Value::Number(idx)) => {
+                        let mut vec = arr.borrow_mut();
+                        if *idx < 0 || (*idx as usize) >= vec.len() {
+                            panic!("Array index out of bounds");
+                        }
+                        vec[*idx as usize] = value;
                     }
-                    vec[idx as usize] = value;
-                } else {
-                    panic!("StoreIndex requires an array and a number index");
+                    (Value::Object(obj), Value::String(key)) => {
+                        let mut map = obj.borrow_mut();
+                        map.insert(key.clone(), value);
+                    }
+                    _ => panic!("Index access requires an array with number index or object with string key"),
                 }
             }
             Instruction::CreateObject(len) => {

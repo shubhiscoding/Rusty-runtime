@@ -1292,3 +1292,69 @@ print obj.b;"#,
     );
     assert!(stderr.contains("not found"));
 }
+
+// ========== Object Bracket Access ==========
+
+#[test]
+fn test_object_bracket_read() {
+    let code = r#"
+let obj = {a: 10, b: 20};
+print obj["a"];
+print obj["b"];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "10\n20");
+}
+
+#[test]
+fn test_object_bracket_write() {
+    let code = r#"
+let obj = {a: 1};
+obj["a"] = 99;
+print obj.a;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "99");
+}
+
+#[test]
+fn test_object_bracket_dynamic_key() {
+    let code = r#"
+let obj = {x: 42};
+let key = "x";
+print obj[key];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "42");
+}
+
+#[test]
+fn test_object_bracket_add_new_property() {
+    let code = r#"
+let obj = {a: 1};
+obj["b"] = 2;
+print obj.b;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "2");
+}
+
+#[test]
+fn test_object_bracket_nested() {
+    let code = r#"
+let obj = {inner: {val: 5}};
+print obj["inner"]["val"];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5");
+}
+
+#[test]
+fn test_object_bracket_mixed_with_dot() {
+    let code = r#"
+let obj = {inner: {val: 5}};
+print obj.inner["val"];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5");
+}
