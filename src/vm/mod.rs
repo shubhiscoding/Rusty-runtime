@@ -348,7 +348,9 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
                             panic!("Property '{}' not found", key);
                         }
                     }
-                    _ => panic!("Index access requires an array with number index or object with string key"),
+                    _ => panic!(
+                        "Index access requires an array with number index or object with string key"
+                    ),
                 }
             }
             Instruction::StoreIndex => {
@@ -368,7 +370,9 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
                         let mut map = obj.borrow_mut();
                         map.insert(key.clone(), value);
                     }
-                    _ => panic!("Index access requires an array with number index or object with string key"),
+                    _ => panic!(
+                        "Index access requires an array with number index or object with string key"
+                    ),
                 }
             }
             Instruction::CreateObject(len) => {
