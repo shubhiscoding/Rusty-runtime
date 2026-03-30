@@ -89,7 +89,9 @@ The WASM backend will:
 * 🔢 Increment / decrement (`i++`, `i--`)
 * 🔧 Functions with parameters, return values, and recursion
 * 🧩 Nested function calls (`add(add(1,2), 3)`)
-* 📦 Arrays (literals, index read/write, pass to functions)
+* 📦 Arrays (literals, index read/write, nested arrays, pass to functions)
+* 🗂️ Objects / maps (literals, dot access, bracket access, nested properties)
+* 🔗 Chained accessors (`obj.items[0]`, `arr[0].name`, `obj["key"]`)
 * 🖨️ Print statements (`print x;`)
 * 🔁 REPL (interactive shell)
 * 📂 File execution (`rusty run file.rts`)
@@ -103,6 +105,7 @@ Check out the [`example/`](example/) folder for sample RTS programs, including:
 
 - [`test.rts`](example/test.rts) — array basics (literals, indexing, mutation)
 - [`merge_sort.rts`](example/merge_sort.rts) — merge sort implementation using arrays, functions, and recursion
+- [`graph_dfs.rts`](example/graph_dfs.rts) — graph DFS traversal using objects as adjacency lists and visited sets
 
 Run any example with:
 
@@ -179,12 +182,16 @@ cargo run -- repl
 * [x] Functions (declaration, params, return)
 * [x] Nested / recursive function calls
 * [x] Frame-based call stack
-* [x] Arrays (literals, indexing, mutation)
+* [x] Arrays (literals, indexing, nested arrays, mutation)
 * [x] Array pass/return from functions
+* [x] Objects / maps (literals, dot + bracket access, nested properties)
+* [x] Object mutation in functions (reference semantics)
+* [x] Chained accessors (`obj.items[0]`, `arr[0].name`)
+* [x] Underscore in identifiers (`my_value`, `_temp`)
 * [ ] Type annotations
-* [ ] Objects / maps
 * [ ] Closures
 * [ ] `<=`, `>=` operators
+* [ ] Built-in `len()` function
 
 ---
 
