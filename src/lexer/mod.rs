@@ -33,6 +33,8 @@ pub enum Token {
     Return,
     SquareLeft,
     SquareRight,
+    Dot,
+    Colon,
 }
 
 pub fn tokenize(input: &str) -> Vec<Token> {
@@ -221,11 +223,21 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 }
             }
 
-            'a'..='z' | 'A'..='Z' => {
+            '.' => {
+                tokens.push(Token::Dot);
+                chars.next();
+            }
+
+            ':' => {
+                tokens.push(Token::Colon);
+                chars.next();
+            }
+
+            'a'..='z' | 'A'..='Z' | '_' => {
                 let mut ident = String::new();
 
                 while let Some(&c) = chars.peek() {
-                    if c.is_alphanumeric() {
+                    if c.is_alphanumeric() || c == '_' {
                         ident.push(c);
                         chars.next();
                     } else {

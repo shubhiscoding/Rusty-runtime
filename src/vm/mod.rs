@@ -19,6 +19,15 @@ impl fmt::Display for Value {
                     .join(", ");
                 write!(f, "[{}]", elements)
             }
+            Value::Object(objs) => {
+                let props = objs
+                    .borrow()
+                    .iter()
+                    .map(|(k, v)| format!("{}: {}", k, v))
+                    .collect::<Vec<String>>()
+                    .join(", ");
+                write!(f, "{{{}}}", props)
+            }
         }
     }
 }
@@ -346,6 +355,44 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
                     vec[idx as usize] = value;
                 } else {
                     panic!("StoreIndex requires an array and a number index");
+                }
+            }
+            Instruction::CreateObject(len) => {
+                let objs = Rc::new(RefCell::new(HashMap::<String, Value>::new()));
+                for _ in 0..len {
+                    let value = runtime.pop_or_panic_stack();
+                    let key = runtime.pop_or_panic_stack();
+                    if let (Value::String(key), value) = (key, value) {
+                        objs.borrow_mut().insert(key, value);
+                    } else {
+                        panic!("CreateObject requires string keys and values");
+                    }
+                }
+                runtime.stack.push(Value::Object(objs));
+            }
+            Instruction::LoadProperty => {
+                let property = runtime.pop_or_panic_stack();
+                let object = runtime.pop_or_panic_stack();
+                if let (Value::Object(obj), Value::String(prop)) = (&object, &property) {
+                    let map = obj.borrow();
+                    if let Some(value) = map.get(prop) {
+                        runtime.stack.push(value.clone());
+                    } else {
+                        panic!("Property '{}' not found", prop);
+                    }
+                } else {
+                    panic!("LoadProperty requires an object and a string property");
+                }
+            }
+            Instruction::StoreProperty => {
+                let value = runtime.pop_or_panic_stack();
+                let property = runtime.pop_or_panic_stack();
+                let object = runtime.pop_or_panic_stack();
+                if let (Value::Object(obj), Value::String(prop)) = (&object, &property) {
+                    let mut map = obj.borrow_mut();
+                    map.insert(prop.clone(), value);
+                } else {
+                    panic!("StoreProperty requires an object and a string property");
                 }
             }
         }

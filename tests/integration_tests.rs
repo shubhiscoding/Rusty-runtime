@@ -1109,3 +1109,186 @@ print g;
     let out = run_rts(code);
     assert_eq!(out, "[[1, 99], [3, 4]]");
 }
+
+// ========== Objects ==========
+
+#[test]
+fn test_object_property_read() {
+    let code = r#"
+let obj = {x: 10, y: 20};
+print obj.x;
+print obj.y;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "10\n20");
+}
+
+#[test]
+fn test_object_property_write() {
+    let code = r#"
+let obj = {a: 1, b: 2};
+obj.a = 99;
+print obj.a;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "99");
+}
+
+#[test]
+fn test_object_property_write_preserves_others() {
+    let code = r#"
+let obj = {a: 1, b: 2};
+obj.a = 99;
+print obj.b;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "2");
+}
+
+#[test]
+fn test_object_add_new_property() {
+    let code = r#"
+let obj = {x: 1};
+obj.y = 2;
+print obj.x;
+print obj.y;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "1\n2");
+}
+
+#[test]
+fn test_object_string_values() {
+    let code = r#"
+let obj = {greeting: "hello"};
+print obj.greeting + " world";
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "hello world");
+}
+
+#[test]
+fn test_object_in_expression() {
+    let code = r#"
+let obj = {a: 10, b: 20};
+print obj.a + obj.b;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "30");
+}
+
+#[test]
+fn test_object_in_variable() {
+    let code = r#"
+let obj = {val: 42};
+let x = obj.val + 8;
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "50");
+}
+
+#[test]
+fn test_object_nested() {
+    let code = r#"
+let obj = {inner: {x: 5}};
+print obj.inner.x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5");
+}
+
+#[test]
+fn test_object_nested_write() {
+    let code = r#"
+let obj = {inner: {x: 5}};
+obj.inner.x = 99;
+print obj.inner.x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "99");
+}
+
+#[test]
+fn test_object_passed_to_function() {
+    let code = r#"
+function getX(obj) {
+    return obj.x;
+}
+let p = {x: 42, y: 10};
+print getX(p);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "42");
+}
+
+#[test]
+fn test_object_mutated_in_function() {
+    let code = r#"
+function setX(obj, val) {
+    obj.x = val;
+    return 0;
+}
+let p = {x: 1, y: 2};
+setX(p, 99);
+print p.x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "99");
+}
+
+#[test]
+fn test_object_with_array_value() {
+    let code = r#"
+let obj = {items: [10, 20, 30]};
+print obj.items[1];
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "20");
+}
+
+#[test]
+fn test_object_property_in_condition() {
+    let code = r#"
+let obj = {score: 85};
+if (obj.score > 50) {
+    print "pass";
+} else {
+    print "fail";
+}
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "pass");
+}
+
+#[test]
+fn test_object_property_in_loop() {
+    let code = r#"
+let obj = {count: 3};
+while (obj.count > 0) {
+    print obj.count;
+    obj.count = obj.count - 1;
+}
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "3\n2\n1");
+}
+
+#[test]
+fn test_object_underscore_property() {
+    let code = r#"
+let obj = {my_value: 42};
+print obj.my_value;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "42");
+}
+
+#[test]
+fn test_object_undefined_property_fails() {
+    let stderr = run_rts_should_fail(
+        r#"let obj = {a: 1};
+print obj.b;"#,
+    );
+    assert!(stderr.contains("not found"));
+}
