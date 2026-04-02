@@ -33,6 +33,8 @@ pub enum Instruction {
     Divide,
     Negate,
     Greater,
+    GreaterThanEquals,
+    LessThanEquals,
     Less,
     Equal,
     NotEqual,
@@ -92,6 +94,8 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                     instructions[jump_instructions_index] =
                         Instruction::JumpIfTrue(instructions.len());
                 }
+                BinaryOperation::GreaterThanEquals => instructions.push(Instruction::GreaterThanEquals),
+                BinaryOperation::LessThanEquals => instructions.push(Instruction::LessThanEquals),
             }
         }
         Expression::Unary { op, expr } => {
