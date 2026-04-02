@@ -64,6 +64,8 @@ pub enum BinaryOperation {
     NotEqual,
     And,
     Or,
+    GreaterThanEquals,
+    LessThanEquals
 }
 
 #[derive(Debug, Clone)]

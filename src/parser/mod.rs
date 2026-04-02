@@ -16,16 +16,6 @@ fn is_arithmetic_operator(tkn: &Token) -> Option<BinaryOperation> {
     }
 }
 
-fn is_compare_operator(tkn: &Token) -> Option<BinaryOperation> {
-    match tkn {
-        Token::Greater => Some(BinaryOperation::Greater),
-        Token::Less => Some(BinaryOperation::Less),
-        Token::EqualEqual => Some(BinaryOperation::Equal),
-        Token::NotEqual => Some(BinaryOperation::NotEqual),
-        _ => None,
-    }
-}
-
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Self { tokens, pos: 0 }
@@ -49,6 +39,54 @@ impl Parser {
         }
 
         statements
+    }
+
+    fn parse_comparison(&mut self) -> Expression {
+        let mut left = self.parse_expression();
+
+        loop {
+            let op = match self.peek() {
+                Some(Token::Greater) => {
+                    self.advance();
+                    if let Some(Token::Equals) = self.peek() {
+                        self.advance();
+                        Some(BinaryOperation::GreaterThanEquals)
+                    } else {
+                        Some(BinaryOperation::Greater)
+                    }
+                }
+                Some(Token::Less) => {
+                    self.advance();
+                    if let Some(Token::Equals) = self.peek() {
+                        self.advance();
+                        Some(BinaryOperation::LessThanEquals)
+                    } else {
+                        Some(BinaryOperation::Less)
+                    }
+                }
+                Some(Token::EqualEqual) => {
+                    self.advance();
+                    Some(BinaryOperation::Equal)
+                }
+                Some(Token::NotEqual) => {
+                    self.advance();
+                    Some(BinaryOperation::NotEqual)
+                }
+                _ => None,
+            };
+
+            if let Some(opr) = op {
+                let right = self.parse_expression();
+                left = Expression::Binary {
+                    left: Box::new(left),
+                    op: opr,
+                    right: Box::new(right),
+                };
+            } else {
+                break;
+            }
+        }
+        left
     }
 
     fn parse_statement(&mut self) -> Statement {
@@ -276,25 +314,6 @@ impl Parser {
                 op: BinaryOperation::Or,
                 right: Box::new(right),
             };
-        }
-        left
-    }
-
-    fn parse_comparison(&mut self) -> Expression {
-        let mut left = self.parse_expression();
-
-        while let Some(token) = self.peek() {
-            if let Some(opr) = is_compare_operator(token) {
-                self.advance();
-                let right = self.parse_expression();
-                left = Expression::Binary {
-                    left: Box::new(left),
-                    op: opr,
-                    right: Box::new(right),
-                };
-            } else {
-                break;
-            }
         }
         left
     }

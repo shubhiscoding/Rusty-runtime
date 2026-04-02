@@ -170,6 +170,26 @@ impl Runtime {
                     panic!("Greater comparison is only supported between values of the same type");
                 }
             }
+            BinaryOperation::GreaterThanEquals => {
+                if matches!(
+                    (&value1, &value2),
+                    (Value::Number(_), Value::Number(_)) | (Value::String(_), Value::String(_))
+                ) {
+                    value2 >= value1
+                } else {
+                    panic!("Greater comparison is only supported between values of the same type");
+                }
+            }
+            BinaryOperation::LessThanEquals => {
+                if matches!(
+                    (&value1, &value2),
+                    (Value::Number(_), Value::Number(_)) | (Value::String(_), Value::String(_))
+                ) {
+                    value2 <= value1
+                } else {
+                    panic!("Less comparison is only supported between values of the same type");
+                }
+            }
             BinaryOperation::Less => {
                 if matches!(
                     (&value1, &value2),
@@ -245,6 +265,12 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
             }
             Instruction::Greater => {
                 runtime.compare_opr(BinaryOperation::Greater);
+            }
+            Instruction::GreaterThanEquals => {
+                runtime.compare_opr(BinaryOperation::GreaterThanEquals);
+            }
+            Instruction::LessThanEquals => {
+                runtime.compare_opr(BinaryOperation::LessThanEquals);
             }
             Instruction::Less => {
                 runtime.compare_opr(BinaryOperation::Less);

@@ -62,6 +62,7 @@ fn main() {
         let filename = &run_args[2];
         let source = std::fs::read_to_string(filename).expect("Failed to read source file");
         let tokens = tokenize(&source);
+        // println!("{:?}", tokens);
         let mut parser = Parser::new(tokens);
         let ast = parser.parse();
         // println!("Parsed AST: {:#?}", ast);

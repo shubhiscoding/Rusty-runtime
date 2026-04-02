@@ -1358,3 +1358,31 @@ print obj.inner["val"];
     let out = run_rts(code);
     assert_eq!(out, "5");
 }
+
+#[test]
+fn test_greater_than_equals() {
+    let code = r#"
+let a = 10;
+let b = 10;
+let c = 9;
+print a >= b;
+print a >= c;
+print c >= a;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "1\n1\n0");
+}
+
+#[test]
+fn test_less_than_equals() {
+    let code = r#"
+let a = 10;
+let b = 10;
+let c = 11;
+print a <= b;
+print a <= c;
+print c <= a;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "1\n1\n0");
+}
