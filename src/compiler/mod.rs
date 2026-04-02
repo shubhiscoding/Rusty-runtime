@@ -94,7 +94,9 @@ fn compile_expr(instructions: &mut Vec<Instruction>, expr: &Expression) {
                     instructions[jump_instructions_index] =
                         Instruction::JumpIfTrue(instructions.len());
                 }
-                BinaryOperation::GreaterThanEquals => instructions.push(Instruction::GreaterThanEquals),
+                BinaryOperation::GreaterThanEquals => {
+                    instructions.push(Instruction::GreaterThanEquals)
+                }
                 BinaryOperation::LessThanEquals => instructions.push(Instruction::LessThanEquals),
             }
         }
