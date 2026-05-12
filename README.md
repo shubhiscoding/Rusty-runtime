@@ -82,7 +82,7 @@ The WASM backend will:
 * ➕ Arithmetic with precedence and parentheses
 * 📝 String literals and concatenation (`"hello" + " world"`)
 * ➖ Unary operators (`-x`, `-(2 + 3)`)
-* 🔀 Comparison operators (`>`, `<`, `==`, `!=`) for numbers and strings
+* 🔀 Comparison operators (`>`, `<`, `==`, `!=`, `>=`, `<=`) for numbers and strings
 * 🔗 Logical operators (`&&`, `||`) with short-circuit evaluation
 * 🔁 Control flow (`if` / `else`) with backpatching
 * 🔄 Loops (`while`, `for`) with `break` / `continue`
@@ -190,7 +190,7 @@ cargo run -- repl
 * [x] Underscore in identifiers (`my_value`, `_temp`)
 * [ ] Type annotations
 * [ ] Closures
-* [ ] `<=`, `>=` operators
+* [x] `<=`, `>=` operators
 * [ ] Built-in `len()` function
 
 ---
