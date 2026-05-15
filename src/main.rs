@@ -6,6 +6,7 @@ mod compiler;
 mod lexer;
 mod parser;
 mod vm;
+mod environment;
 use compiler::compile_program;
 use lexer::tokenize;
 use parser::Parser;

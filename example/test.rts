@@ -1,29 +1,9 @@
-let x = (2 + 3) * 4;
-print "x = " + x;
+let x = 10;
 
-function max(a, b) {
-    if (a > b) {
-        return a;
-    } else {
-        return b;
-    }
+function f() {
+    x = 20;
 }
 
-print "max is " + max(x, 15);
+f();
 
-function factorial(n) {
-    if (n < 2) { return 1; }
-    return n * factorial(n - 1);
-}
-print "5! = " + factorial(5);
-
-for (let i = 0; i < 5; i++) {
-    if (i == 2) { continue; }
-    if (i == 4) { break; }
-    print i;
-}
-
-let name = "Rusty";
-if (name && x > 10) {
-    print name + " works!";
-}
+print x;

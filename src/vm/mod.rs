@@ -3,7 +3,9 @@ use std::{cell::RefCell, collections::HashMap, fmt, rc::Rc};
 use crate::{
     ast::{BinaryOperation, Value},
     compiler::{FunctionBytecode, Instruction, Program},
+    environment::{Environment},
 };
+
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -34,7 +36,7 @@ impl fmt::Display for Value {
 
 #[derive(Debug, Clone)]
 pub struct Frame {
-    variables: HashMap<String, Value>,
+    env: Rc<RefCell<Environment>>,
     instructions: Vec<Instruction>,
     ip: usize,
 }
@@ -55,13 +57,16 @@ impl Runtime {
     }
 
     fn load_variable(&mut self, var: &str) {
-        if let Some(value) = self
-            .frames
-            .iter()
-            .rev()
-            .find_map(|frame| frame.variables.get(var))
+        let current_frame =
+            self.frames.last().unwrap();
+
+        if let Some(value) =
+            current_frame
+                .env
+                .borrow()
+                .get(var)
         {
-            self.stack.push((*value).clone());
+            self.stack.push(value.clone());
         } else {
             panic!("{} is not defined", var);
         }
@@ -69,26 +74,21 @@ impl Runtime {
 
     fn store_variable(&mut self, var: String) {
         if let Some(value) = self.stack.pop() {
-            self.frames.last_mut().unwrap().variables.insert(var, value);
+            self.frames.last_mut().unwrap().env.borrow_mut().variables.insert(var, value);
         } else {
             panic!("No defined value to store in {}", var);
         }
     }
 
     fn assign_variable(&mut self, var: String) {
-        if let Some(value) = self
-            .frames
-            .iter_mut()
-            .rev()
-            .find_map(|frame| frame.variables.get_mut(&var))
-        {
-            if let Some(val) = self.stack.pop() {
-                *value = val;
-            } else {
-                panic!("No defined value to store in {}", var);
+        let current_frame = self.frames.last().unwrap();
+        if let Some(val) = self.stack.pop() {
+            let success = current_frame.env.borrow_mut().assign(&var, val);
+            if !success {
+                panic!("Variable '{}' not defined", var);
             }
         } else {
-            panic!("{} is not defined", var);
+            panic!("No defined value to store in {}", var);
         }
     }
 
@@ -214,8 +214,12 @@ impl Runtime {
 
 pub fn execute(program: Program, runtime: &mut Runtime) {
     runtime.functions = program.functions;
+    let global_env =
+    Rc::new(RefCell::new(
+        Environment::new(None)
+    ));
     runtime.frames.push(Frame {
-        variables: HashMap::new(),
+        env: global_env,
         instructions: program.main,
         ip: 0,
     });
@@ -315,7 +319,7 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
             }
             Instruction::CallFunction(name, arg_count) => {
                 let func = runtime.functions.get(&name).expect("undefined function");
-                let mut locals = HashMap::new();
+                // let mut locals = HashMap::new();
                 // Pop args in reverse (last arg was pushed last)
                 if arg_count != func.params.len() {
                     panic!(
@@ -324,8 +328,13 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
                         arg_count
                     );
                 }
+                let parnt_env = runtime.frames.last().unwrap().env.clone();
+                let local_env =
+                    Rc::new(RefCell::new(
+                        Environment::new(Some(parnt_env))
+                    ));
                 for param in func.params.iter().rev() {
-                    locals.insert(param.clone(), runtime.stack.pop().unwrap());
+                    local_env.borrow_mut().variables.insert(param.clone(), runtime.stack.pop().unwrap());
                 }
                 // Save caller's position (move past the CallFunction instruction)
                 runtime.frames.last_mut().unwrap().ip += 1;
@@ -333,7 +342,7 @@ pub fn execute(program: Program, runtime: &mut Runtime) {
                 runtime.frames.push(Frame {
                     instructions: func.instructions.clone(),
                     ip: 0,
-                    variables: locals,
+                    env: local_env
                 });
                 continue; // don't increment ip again
             }
