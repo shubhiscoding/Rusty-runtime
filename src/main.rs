@@ -3,6 +3,7 @@ use std::panic;
 
 mod ast;
 mod compiler;
+mod environment;
 mod lexer;
 mod parser;
 mod vm;

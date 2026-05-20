@@ -1359,6 +1359,193 @@ print obj.inner["val"];
     assert_eq!(out, "5");
 }
 
+// ========== Closures / Lexical Scoping ==========
+
+#[test]
+fn test_function_mutates_outer_variable() {
+    let code = r#"
+let x = 10;
+function f() {
+    x = 20;
+}
+f();
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "20");
+}
+
+#[test]
+fn test_function_local_declaration_does_not_leak_to_outer() {
+    let code = r#"
+let x = 1;
+function f() {
+    let y = 99;
+    x = 2;
+}
+f();
+print x;
+"#;
+    let stderr = run_rts_should_fail(
+        r#"
+let x = 1;
+function f() {
+    let y = 99;
+}
+f();
+print y;
+"#,
+    );
+    assert!(stderr.contains("not defined"));
+
+    let out = run_rts(code);
+    assert_eq!(out, "2");
+}
+
+#[test]
+fn test_parameter_shadows_outer_variable() {
+    let code = r#"
+let x = 100;
+function f(x) {
+    x = x + 1;
+    return x;
+}
+print f(5);
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "6\n100");
+}
+
+#[test]
+fn test_local_let_shadows_outer_then_assign_targets_local() {
+    let code = r#"
+let x = 100;
+function f() {
+    let x = 1;
+    x = x + 1;
+    return x;
+}
+print f();
+print x;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "2\n100");
+}
+
+#[test]
+fn test_multiple_calls_accumulate_in_outer_variable() {
+    let code = r#"
+let count = 0;
+function inc() {
+    count = count + 1;
+}
+inc();
+inc();
+inc();
+print count;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "3");
+}
+
+#[test]
+fn test_two_functions_share_outer_state() {
+    let code = r#"
+let n = 5;
+function double_it() {
+    n = n * 2;
+}
+function add_one() {
+    n = n + 1;
+}
+double_it();
+add_one();
+print n;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "11");
+}
+
+#[test]
+fn test_function_mutates_outer_in_loop() {
+    let code = r#"
+let total = 0;
+function add(v) {
+    total = total + v;
+}
+for (let i = 1; i < 5; i++) {
+    add(i);
+}
+print total;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "10");
+}
+
+#[test]
+fn test_assign_to_undeclared_inside_function_fails() {
+    let stderr = run_rts_should_fail(
+        r#"
+function f() {
+    y = 5;
+}
+f();
+"#,
+    );
+    assert!(stderr.contains("not defined"));
+}
+
+#[test]
+fn test_nested_function_call_sees_global_through_parent_chain() {
+    let code = r#"
+let g = 7;
+function inner() {
+    return g;
+}
+function outer() {
+    return inner();
+}
+print outer();
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "7");
+}
+
+#[test]
+fn test_recursive_function_each_call_has_own_local_scope() {
+    let code = r#"
+function count_down(n) {
+    if (n == 0) {
+        return 0;
+    }
+    print n;
+    return count_down(n - 1);
+}
+count_down(3);
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "3\n2\n1");
+}
+
+#[test]
+fn test_outer_mutation_visible_after_recursive_chain() {
+    let code = r#"
+let calls = 0;
+function rec(n) {
+    calls = calls + 1;
+    if (n == 0) {
+        return 0;
+    }
+    return rec(n - 1);
+}
+rec(4);
+print calls;
+"#;
+    let out = run_rts(code);
+    assert_eq!(out, "5");
+}
+
 #[test]
 fn test_greater_than_equals() {
     let code = r#"
